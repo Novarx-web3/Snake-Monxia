@@ -445,1108 +445,1163 @@
 		   CONFIG: set your contract info
 		   ============================ */
 		// Replace with your deployed contract and ABI
-	const CONTRACT_ADDRESS = "0xC06FA9679a9FF26BDb78082edc44568cb506D5a8"; // <<< replace me
+	const CONTRACT_ADDRESS = "0x63BD9f5662BE41d55621CF77478B8AF4989d3236"; // <<< replace me
 	// ABI (compact string ABI entries)
 	const CONTRACT_ABI = [
-		{
-			"inputs": [],
-			"stateMutability": "nonpayable",
-			"type": "constructor"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "address",
-					"name": "sender",
-					"type": "address"
-				},
-				{
-					"internalType": "uint256",
-					"name": "tokenId",
-					"type": "uint256"
-				},
-				{
-					"internalType": "address",
-					"name": "owner",
-					"type": "address"
-				}
-			],
-			"name": "ERC721IncorrectOwner",
-			"type": "error"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "address",
-					"name": "operator",
-					"type": "address"
-				},
-				{
-					"internalType": "uint256",
-					"name": "tokenId",
-					"type": "uint256"
-				}
-			],
-			"name": "ERC721InsufficientApproval",
-			"type": "error"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "address",
-					"name": "approver",
-					"type": "address"
-				}
-			],
-			"name": "ERC721InvalidApprover",
-			"type": "error"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "address",
-					"name": "operator",
-					"type": "address"
-				}
-			],
-			"name": "ERC721InvalidOperator",
-			"type": "error"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "address",
-					"name": "owner",
-					"type": "address"
-				}
-			],
-			"name": "ERC721InvalidOwner",
-			"type": "error"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "address",
-					"name": "receiver",
-					"type": "address"
-				}
-			],
-			"name": "ERC721InvalidReceiver",
-			"type": "error"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "address",
-					"name": "sender",
-					"type": "address"
-				}
-			],
-			"name": "ERC721InvalidSender",
-			"type": "error"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "uint256",
-					"name": "tokenId",
-					"type": "uint256"
-				}
-			],
-			"name": "ERC721NonexistentToken",
-			"type": "error"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "address",
-					"name": "owner",
-					"type": "address"
-				}
-			],
-			"name": "OwnableInvalidOwner",
-			"type": "error"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "address",
-					"name": "account",
-					"type": "address"
-				}
-			],
-			"name": "OwnableUnauthorizedAccount",
-			"type": "error"
-		},
-		{
-			"anonymous": false,
-			"inputs": [
-				{
-					"indexed": true,
-					"internalType": "address",
-					"name": "owner",
-					"type": "address"
-				},
-				{
-					"indexed": true,
-					"internalType": "address",
-					"name": "approved",
-					"type": "address"
-				},
-				{
-					"indexed": true,
-					"internalType": "uint256",
-					"name": "tokenId",
-					"type": "uint256"
-				}
-			],
-			"name": "Approval",
-			"type": "event"
-		},
-		{
-			"anonymous": false,
-			"inputs": [
-				{
-					"indexed": true,
-					"internalType": "address",
-					"name": "owner",
-					"type": "address"
-				},
-				{
-					"indexed": true,
-					"internalType": "address",
-					"name": "operator",
-					"type": "address"
-				},
-				{
-					"indexed": false,
-					"internalType": "bool",
-					"name": "approved",
-					"type": "bool"
-				}
-			],
-			"name": "ApprovalForAll",
-			"type": "event"
-		},
-		{
-			"anonymous": false,
-			"inputs": [
-				{
-					"indexed": false,
-					"internalType": "uint256",
-					"name": "_fromTokenId",
-					"type": "uint256"
-				},
-				{
-					"indexed": false,
-					"internalType": "uint256",
-					"name": "_toTokenId",
-					"type": "uint256"
-				}
-			],
-			"name": "BatchMetadataUpdate",
-			"type": "event"
-		},
-		{
-			"anonymous": false,
-			"inputs": [
-				{
-					"indexed": false,
-					"internalType": "uint256",
-					"name": "_tokenId",
-					"type": "uint256"
-				}
-			],
-			"name": "MetadataUpdate",
-			"type": "event"
-		},
-		{
-			"anonymous": false,
-			"inputs": [
-				{
-					"indexed": true,
-					"internalType": "address",
-					"name": "previousOwner",
-					"type": "address"
-				},
-				{
-					"indexed": true,
-					"internalType": "address",
-					"name": "newOwner",
-					"type": "address"
-				}
-			],
-			"name": "OwnershipTransferred",
-			"type": "event"
-		},
-		{
-			"anonymous": false,
-			"inputs": [
-				{
-					"indexed": false,
-					"internalType": "address",
-					"name": "player",
-					"type": "address"
-				},
-				{
-					"indexed": false,
-					"internalType": "uint8",
-					"name": "mode",
-					"type": "uint8"
-				},
-				{
-					"indexed": false,
-					"internalType": "uint256",
-					"name": "score",
-					"type": "uint256"
-				},
-				{
-					"indexed": false,
-					"internalType": "uint256",
-					"name": "coinsEarned",
-					"type": "uint256"
-				}
-			],
-			"name": "ScoreSubmitted",
-			"type": "event"
-		},
-		{
-			"anonymous": false,
-			"inputs": [
-				{
-					"indexed": false,
-					"internalType": "uint256",
-					"name": "tokenId",
-					"type": "uint256"
-				},
-				{
-					"indexed": false,
-					"internalType": "uint8",
-					"name": "skin",
-					"type": "uint8"
-				}
-			],
-			"name": "SkinApplied",
-			"type": "event"
-		},
-		{
-			"anonymous": false,
-			"inputs": [
-				{
-					"indexed": false,
-					"internalType": "uint256",
-					"name": "tokenId",
-					"type": "uint256"
-				},
-				{
-					"indexed": false,
-					"internalType": "address",
-					"name": "owner",
-					"type": "address"
-				},
-				{
-					"components": [
-						{
-							"internalType": "uint8",
-							"name": "speed",
-							"type": "uint8"
-						},
-						{
-							"internalType": "uint8",
-							"name": "hearts",
-							"type": "uint8"
-						},
-						{
-							"internalType": "uint8",
-							"name": "length",
-							"type": "uint8"
-						},
-						{
-							"internalType": "uint8",
-							"name": "skin",
-							"type": "uint8"
-						},
-						{
-							"internalType": "bool",
-							"name": "isClassic",
-							"type": "bool"
-						}
-					],
-					"indexed": false,
-					"internalType": "struct SnakeMonxiaGame.SnakeAttributes",
-					"name": "attrs",
-					"type": "tuple"
-				}
-			],
-			"name": "SnakeMinted",
-			"type": "event"
-		},
-		{
-			"anonymous": false,
-			"inputs": [
-				{
-					"indexed": false,
-					"internalType": "uint256",
-					"name": "tokenId",
-					"type": "uint256"
-				},
-				{
-					"indexed": false,
-					"internalType": "string",
-					"name": "attr",
-					"type": "string"
-				},
-				{
-					"indexed": false,
-					"internalType": "uint8",
-					"name": "newValue",
-					"type": "uint8"
-				}
-			],
-			"name": "SnakeUpgraded",
-			"type": "event"
-		},
-		{
-			"anonymous": false,
-			"inputs": [
-				{
-					"indexed": true,
-					"internalType": "address",
-					"name": "from",
-					"type": "address"
-				},
-				{
-					"indexed": true,
-					"internalType": "address",
-					"name": "to",
-					"type": "address"
-				},
-				{
-					"indexed": true,
-					"internalType": "uint256",
-					"name": "tokenId",
-					"type": "uint256"
-				}
-			],
-			"name": "Transfer",
-			"type": "event"
-		},
-		{
-			"inputs": [],
-			"name": "BASE_UPGRADE_COST",
-			"outputs": [
-				{
-					"internalType": "uint256",
-					"name": "",
-					"type": "uint256"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [],
-			"name": "CLASSIC_MINT_PRICE",
-			"outputs": [
-				{
-					"internalType": "uint256",
-					"name": "",
-					"type": "uint256"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [],
-			"name": "SKIN_PRICE",
-			"outputs": [
-				{
-					"internalType": "uint256",
-					"name": "",
-					"type": "uint256"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [],
-			"name": "SPECIAL_MINT_PRICE",
-			"outputs": [
-				{
-					"internalType": "uint256",
-					"name": "",
-					"type": "uint256"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "uint256",
-					"name": "tokenId",
-					"type": "uint256"
-				},
-				{
-					"internalType": "uint8",
-					"name": "skinId",
-					"type": "uint8"
-				}
-			],
-			"name": "applySkin",
-			"outputs": [],
-			"stateMutability": "nonpayable",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "address",
-					"name": "to",
-					"type": "address"
-				},
-				{
-					"internalType": "uint256",
-					"name": "tokenId",
-					"type": "uint256"
-				}
-			],
-			"name": "approve",
-			"outputs": [],
-			"stateMutability": "nonpayable",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "address",
-					"name": "owner",
-					"type": "address"
-				}
-			],
-			"name": "balanceOf",
-			"outputs": [
-				{
-					"internalType": "uint256",
-					"name": "",
-					"type": "uint256"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "uint8",
-					"name": "current",
-					"type": "uint8"
-				},
-				{
-					"internalType": "uint8",
-					"name": "target",
-					"type": "uint8"
-				}
-			],
-			"name": "calculateUpgradeCost",
-			"outputs": [
-				{
-					"internalType": "uint256",
-					"name": "",
-					"type": "uint256"
-				}
-			],
-			"stateMutability": "pure",
-			"type": "function"
-		},
-		{
-			"inputs": [],
-			"name": "coins",
-			"outputs": [
-				{
-					"internalType": "contract MonxiaCoin",
-					"name": "",
-					"type": "address"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "uint256",
-					"name": "tokenId",
-					"type": "uint256"
-				}
-			],
-			"name": "getApproved",
-			"outputs": [
-				{
-					"internalType": "address",
-					"name": "",
-					"type": "address"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "uint8",
-					"name": "mode",
-					"type": "uint8"
-				}
-			],
-			"name": "getPersonalBest",
-			"outputs": [
-				{
-					"internalType": "uint256",
-					"name": "",
-					"type": "uint256"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "uint8",
-					"name": "mode",
-					"type": "uint8"
-				}
-			],
-			"name": "getTopLeaderboard",
-			"outputs": [
-				{
-					"internalType": "address[100]",
-					"name": "",
-					"type": "address[100]"
-				},
-				{
-					"internalType": "uint256[100]",
-					"name": "",
-					"type": "uint256[100]"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "address",
-					"name": "owner",
-					"type": "address"
-				},
-				{
-					"internalType": "address",
-					"name": "operator",
-					"type": "address"
-				}
-			],
-			"name": "isApprovedForAll",
-			"outputs": [
-				{
-					"internalType": "bool",
-					"name": "",
-					"type": "bool"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "uint256",
-					"name": "",
-					"type": "uint256"
-				}
-			],
-			"name": "isClassicSnake",
-			"outputs": [
-				{
-					"internalType": "bool",
-					"name": "",
-					"type": "bool"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "address",
-					"name": "to",
-					"type": "address"
-				}
-			],
-			"name": "mintClassic",
-			"outputs": [
-				{
-					"internalType": "uint256",
-					"name": "",
-					"type": "uint256"
-				}
-			],
-			"stateMutability": "payable",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "address",
-					"name": "to",
-					"type": "address"
-				}
-			],
-			"name": "mintFastSnake",
-			"outputs": [
-				{
-					"internalType": "uint256",
-					"name": "",
-					"type": "uint256"
-				}
-			],
-			"stateMutability": "payable",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "address",
-					"name": "to",
-					"type": "address"
-				}
-			],
-			"name": "mintHeartySnake",
-			"outputs": [
-				{
-					"internalType": "uint256",
-					"name": "",
-					"type": "uint256"
-				}
-			],
-			"stateMutability": "payable",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "address",
-					"name": "to",
-					"type": "address"
-				}
-			],
-			"name": "mintLongSnake",
-			"outputs": [
-				{
-					"internalType": "uint256",
-					"name": "",
-					"type": "uint256"
-				}
-			],
-			"stateMutability": "payable",
-			"type": "function"
-		},
-		{
-			"inputs": [],
-			"name": "name",
-			"outputs": [
-				{
-					"internalType": "string",
-					"name": "",
-					"type": "string"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [],
-			"name": "owner",
-			"outputs": [
-				{
-					"internalType": "address",
-					"name": "",
-					"type": "address"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "uint256",
-					"name": "tokenId",
-					"type": "uint256"
-				}
-			],
-			"name": "ownerOf",
-			"outputs": [
-				{
-					"internalType": "address",
-					"name": "",
-					"type": "address"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "uint8",
-					"name": "",
-					"type": "uint8"
-				},
-				{
-					"internalType": "address",
-					"name": "",
-					"type": "address"
-				}
-			],
-			"name": "personalBests",
-			"outputs": [
-				{
-					"internalType": "uint256",
-					"name": "",
-					"type": "uint256"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [],
-			"name": "renounceOwnership",
-			"outputs": [],
-			"stateMutability": "nonpayable",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "address",
-					"name": "from",
-					"type": "address"
-				},
-				{
-					"internalType": "address",
-					"name": "to",
-					"type": "address"
-				},
-				{
-					"internalType": "uint256",
-					"name": "tokenId",
-					"type": "uint256"
-				}
-			],
-			"name": "safeTransferFrom",
-			"outputs": [],
-			"stateMutability": "nonpayable",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "address",
-					"name": "from",
-					"type": "address"
-				},
-				{
-					"internalType": "address",
-					"name": "to",
-					"type": "address"
-				},
-				{
-					"internalType": "uint256",
-					"name": "tokenId",
-					"type": "uint256"
-				},
-				{
-					"internalType": "bytes",
-					"name": "data",
-					"type": "bytes"
-				}
-			],
-			"name": "safeTransferFrom",
-			"outputs": [],
-			"stateMutability": "nonpayable",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "address",
-					"name": "operator",
-					"type": "address"
-				},
-				{
-					"internalType": "bool",
-					"name": "approved",
-					"type": "bool"
-				}
-			],
-			"name": "setApprovalForAll",
-			"outputs": [],
-			"stateMutability": "nonpayable",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "uint256",
-					"name": "",
-					"type": "uint256"
-				}
-			],
-			"name": "snakeAttributes",
-			"outputs": [
-				{
-					"internalType": "uint8",
-					"name": "speed",
-					"type": "uint8"
-				},
-				{
-					"internalType": "uint8",
-					"name": "hearts",
-					"type": "uint8"
-				},
-				{
-					"internalType": "uint8",
-					"name": "length",
-					"type": "uint8"
-				},
-				{
-					"internalType": "uint8",
-					"name": "skin",
-					"type": "uint8"
-				},
-				{
-					"internalType": "bool",
-					"name": "isClassic",
-					"type": "bool"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "uint8",
-					"name": "mode",
-					"type": "uint8"
-				},
-				{
-					"internalType": "uint256",
-					"name": "score",
-					"type": "uint256"
-				}
-			],
-			"name": "submitScore",
-			"outputs": [],
-			"stateMutability": "nonpayable",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "bytes4",
-					"name": "interfaceId",
-					"type": "bytes4"
-				}
-			],
-			"name": "supportsInterface",
-			"outputs": [
-				{
-					"internalType": "bool",
-					"name": "",
-					"type": "bool"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [],
-			"name": "symbol",
-			"outputs": [
-				{
-					"internalType": "string",
-					"name": "",
-					"type": "string"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "uint256",
-					"name": "tokenId",
-					"type": "uint256"
-				}
-			],
-			"name": "tokenURI",
-			"outputs": [
-				{
-					"internalType": "string",
-					"name": "",
-					"type": "string"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "uint8",
-					"name": "",
-					"type": "uint8"
-				},
-				{
-					"internalType": "uint256",
-					"name": "",
-					"type": "uint256"
-				}
-			],
-			"name": "topPlayers",
-			"outputs": [
-				{
-					"internalType": "address",
-					"name": "",
-					"type": "address"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "uint8",
-					"name": "",
-					"type": "uint8"
-				},
-				{
-					"internalType": "uint256",
-					"name": "",
-					"type": "uint256"
-				}
-			],
-			"name": "topScores",
-			"outputs": [
-				{
-					"internalType": "uint256",
-					"name": "",
-					"type": "uint256"
-				}
-			],
-			"stateMutability": "view",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "address",
-					"name": "from",
-					"type": "address"
-				},
-				{
-					"internalType": "address",
-					"name": "to",
-					"type": "address"
-				},
-				{
-					"internalType": "uint256",
-					"name": "tokenId",
-					"type": "uint256"
-				}
-			],
-			"name": "transferFrom",
-			"outputs": [],
-			"stateMutability": "nonpayable",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "address",
-					"name": "newOwner",
-					"type": "address"
-				}
-			],
-			"name": "transferOwnership",
-			"outputs": [],
-			"stateMutability": "nonpayable",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "uint256",
-					"name": "tokenId",
-					"type": "uint256"
-				},
-				{
-					"internalType": "uint8",
-					"name": "newHearts",
-					"type": "uint8"
-				}
-			],
-			"name": "upgradeHearts",
-			"outputs": [],
-			"stateMutability": "nonpayable",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "uint256",
-					"name": "tokenId",
-					"type": "uint256"
-				},
-				{
-					"internalType": "uint8",
-					"name": "newLengthBonus",
-					"type": "uint8"
-				}
-			],
-			"name": "upgradeLength",
-			"outputs": [],
-			"stateMutability": "nonpayable",
-			"type": "function"
-		},
-		{
-			"inputs": [
-				{
-					"internalType": "uint256",
-					"name": "tokenId",
-					"type": "uint256"
-				},
-				{
-					"internalType": "uint8",
-					"name": "newSpeed",
-					"type": "uint8"
-				}
-			],
-			"name": "upgradeSpeed",
-			"outputs": [],
-			"stateMutability": "nonpayable",
-			"type": "function"
-		}
+			
+			{
+				"inputs": [],
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "sender",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					}
+				],
+				"name": "ERC721IncorrectOwner",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "operator",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					}
+				],
+				"name": "ERC721InsufficientApproval",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "approver",
+						"type": "address"
+					}
+				],
+				"name": "ERC721InvalidApprover",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "operator",
+						"type": "address"
+					}
+				],
+				"name": "ERC721InvalidOperator",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					}
+				],
+				"name": "ERC721InvalidOwner",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "receiver",
+						"type": "address"
+					}
+				],
+				"name": "ERC721InvalidReceiver",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "sender",
+						"type": "address"
+					}
+				],
+				"name": "ERC721InvalidSender",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					}
+				],
+				"name": "ERC721NonexistentToken",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					}
+				],
+				"name": "OwnableInvalidOwner",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					}
+				],
+				"name": "OwnableUnauthorizedAccount",
+				"type": "error"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "approved",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					}
+				],
+				"name": "Approval",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "operator",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "bool",
+						"name": "approved",
+						"type": "bool"
+					}
+				],
+				"name": "ApprovalForAll",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "_fromTokenId",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "_toTokenId",
+						"type": "uint256"
+					}
+				],
+				"name": "BatchMetadataUpdate",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "_tokenId",
+						"type": "uint256"
+					}
+				],
+				"name": "MetadataUpdate",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "previousOwner",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "newOwner",
+						"type": "address"
+					}
+				],
+				"name": "OwnershipTransferred",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "player",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint8",
+						"name": "mode",
+						"type": "uint8"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "score",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "coinsEarned",
+						"type": "uint256"
+					}
+				],
+				"name": "ScoreSubmitted",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint8",
+						"name": "skin",
+						"type": "uint8"
+					}
+				],
+				"name": "SkinApplied",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					},
+					{
+						"components": [
+							{
+								"internalType": "uint8",
+								"name": "speed",
+								"type": "uint8"
+							},
+							{
+								"internalType": "uint8",
+								"name": "hearts",
+								"type": "uint8"
+							},
+							{
+								"internalType": "uint8",
+								"name": "length",
+								"type": "uint8"
+							},
+							{
+								"internalType": "uint8",
+								"name": "skin",
+								"type": "uint8"
+							},
+							{
+								"internalType": "bool",
+								"name": "isClassic",
+								"type": "bool"
+							}
+						],
+						"indexed": false,
+						"internalType": "struct SnakeMonxiaGame.SnakeAttributes",
+						"name": "attrs",
+						"type": "tuple"
+					}
+				],
+				"name": "SnakeMinted",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "attr",
+						"type": "string"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint8",
+						"name": "newValue",
+						"type": "uint8"
+					}
+				],
+				"name": "SnakeUpgraded",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "from",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "to",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					}
+				],
+				"name": "Transfer",
+				"type": "event"
+			},
+			{
+				"inputs": [],
+				"name": "BASE_UPGRADE_COST",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "CLASSIC_MINT_PRICE",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "SKIN_PRICE",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "SPECIAL_MINT_PRICE",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint8",
+						"name": "skinId",
+						"type": "uint8"
+					}
+				],
+				"name": "applySkin",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "to",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					}
+				],
+				"name": "approve",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					}
+				],
+				"name": "balanceOf",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint8",
+						"name": "current",
+						"type": "uint8"
+					},
+					{
+						"internalType": "uint8",
+						"name": "target",
+						"type": "uint8"
+					}
+				],
+				"name": "calculateUpgradeCost",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "pure",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "coins",
+				"outputs": [
+					{
+						"internalType": "contract MonxiaCoin",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					}
+				],
+				"name": "getApproved",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint8",
+						"name": "mode",
+						"type": "uint8"
+					},
+					{
+						"internalType": "address",
+						"name": "player",
+						"type": "address"
+					}
+				],
+				"name": "getPersonalBest",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint8",
+						"name": "mode",
+						"type": "uint8"
+					}
+				],
+				"name": "getTopPlayers",
+				"outputs": [
+					{
+						"internalType": "address[100]",
+						"name": "players",
+						"type": "address[100]"
+					},
+					{
+						"internalType": "uint256[100]",
+						"name": "scores",
+						"type": "uint256[100]"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "operator",
+						"type": "address"
+					}
+				],
+				"name": "isApprovedForAll",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "isClassicSnake",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "to",
+						"type": "address"
+					}
+				],
+				"name": "mintClassic",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "payable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "to",
+						"type": "address"
+					}
+				],
+				"name": "mintFastSnake",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "payable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "to",
+						"type": "address"
+					}
+				],
+				"name": "mintHeartySnake",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "payable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "to",
+						"type": "address"
+					}
+				],
+				"name": "mintLongSnake",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "payable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "name",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "owner",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					}
+				],
+				"name": "ownerOf",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint8",
+						"name": "",
+						"type": "uint8"
+					},
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"name": "personalBests",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "renounceOwnership",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "from",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "to",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					}
+				],
+				"name": "safeTransferFrom",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "from",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "to",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bytes",
+						"name": "data",
+						"type": "bytes"
+					}
+				],
+				"name": "safeTransferFrom",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "operator",
+						"type": "address"
+					},
+					{
+						"internalType": "bool",
+						"name": "approved",
+						"type": "bool"
+					}
+				],
+				"name": "setApprovalForAll",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "snakeAttributes",
+				"outputs": [
+					{
+						"internalType": "uint8",
+						"name": "speed",
+						"type": "uint8"
+					},
+					{
+						"internalType": "uint8",
+						"name": "hearts",
+						"type": "uint8"
+					},
+					{
+						"internalType": "uint8",
+						"name": "length",
+						"type": "uint8"
+					},
+					{
+						"internalType": "uint8",
+						"name": "skin",
+						"type": "uint8"
+					},
+					{
+						"internalType": "bool",
+						"name": "isClassic",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint8",
+						"name": "mode",
+						"type": "uint8"
+					},
+					{
+						"internalType": "uint256",
+						"name": "score",
+						"type": "uint256"
+					}
+				],
+				"name": "submitScore",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "bytes4",
+						"name": "interfaceId",
+						"type": "bytes4"
+					}
+				],
+				"name": "supportsInterface",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "symbol",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					}
+				],
+				"name": "tokenURI",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint8",
+						"name": "",
+						"type": "uint8"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "topPlayers",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint8",
+						"name": "",
+						"type": "uint8"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "topScores",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint8",
+						"name": "mode",
+						"type": "uint8"
+					},
+					{
+						"internalType": "uint256",
+						"name": "index",
+						"type": "uint256"
+					}
+				],
+				"name": "topScoresAt",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "player",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "score",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint8",
+						"name": "mode",
+						"type": "uint8"
+					}
+				],
+				"name": "topScoresLength",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "from",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "to",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					}
+				],
+				"name": "transferFrom",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "newOwner",
+						"type": "address"
+					}
+				],
+				"name": "transferOwnership",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint8",
+						"name": "newHearts",
+						"type": "uint8"
+					}
+				],
+				"name": "upgradeHearts",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint8",
+						"name": "newLengthBonus",
+						"type": "uint8"
+					}
+				],
+				"name": "upgradeLength",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint8",
+						"name": "newSpeed",
+						"type": "uint8"
+					}
+				],
+				"name": "upgradeSpeed",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		
 
 	];
 
@@ -1560,6 +1615,47 @@
 		let contract = null;
 		let userAddress = null;
 		const processingShimmer = document.getElementById("processingShimmer");
+		function getAnyProvider() {
+				if (typeof window === "undefined") return null;
+
+				// Some wallets expose window.ethereum.providers
+				if (window.ethereum?.providers?.length) {
+					// Look for known wallet flags
+					const p = window.ethereum.providers.find(p =>
+						p.isMetaMask ||
+						p.isBitget ||
+						p.isRabby ||
+						p.isCoinbaseWallet ||
+						p.isOKXWallet ||
+						p.isUniswapWallet
+					);
+					return p || window.ethereum.providers[0];
+				}
+
+				// Fallback to single provider
+				if (window.ethereum) return window.ethereum;
+				return null;
+			}
+
+		function getInjectedProvider() {
+				// 1️⃣ If multiple wallets are injected
+				if (window.ethereum?.providers?.length) {
+					const providers = window.ethereum.providers;
+					// prefer MetaMask, then Bitget, then Rabby, else first
+					const priority = ["isMetaMask", "isBitget", "isRabby", "isCoinbaseWallet", "isOKXWallet"];
+					for (const key of priority) {
+						const found = providers.find(p => p[key]);
+						if (found) return found;
+					}
+					return providers[0]; // fallback
+				}
+
+				// 2️⃣ Single provider case
+				if (window.ethereum) return window.ethereum;
+
+				// 3️⃣ No wallet installed
+				return null;
+			}
 
 		function startProcessing() {
 			processingShimmer.style.display = "block";
@@ -1575,45 +1671,41 @@
 				try {
 					startProcessing();
 
-					// Handle multiple injected providers
-					let injectedProvider = null;
-					if (typeof window.ethereum !== "undefined") {
-						if (window.ethereum.providers?.length) {
-							// pick MetaMask if available, otherwise first provider
-							injectedProvider = window.ethereum.providers.find(p => p.isMetaMask) || window.ethereum.providers[0];
-						} else {
-							injectedProvider = window.ethereum;
-						}
-					}
+					// --- Universal EVM wallet detection ---
+					
 
+					const injectedProvider = getAnyProvider();
 					if (!injectedProvider) {
-						alert("No Ethereum wallet detected. Please install MetaMask or another wallet extension.");
+						alert("No Ethereum wallet detected. Please install MetaMask, Bitget, or another wallet.");
 						stopProcessing();
 						return;
 					}
+					provider = new ethers.providers.Web3Provider(injectedProvider, "any");
 
-					// Create ethers provider from the injected wallet
+
+					// --- Create ethers provider ---
 					provider = new ethers.providers.Web3Provider(injectedProvider, "any");
 					await provider.send("eth_requestAccounts", []);
 					signer = provider.getSigner();
 					userAddress = await signer.getAddress();
 
-					// update UI
+					// --- Update UI ---
 					document.getElementById("walletAddr").innerText =
 						userAddress.slice(0, 6) + "..." + userAddress.slice(-4);
 
 					const net = await provider.getNetwork();
 					document.getElementById("networkLabel").innerText = `chainId: ${net.chainId}`;
 
-					// Require Monad testnet chainId = 10143
+					// Warn if not on Monad testnet
 					if (net.chainId !== 10143) {
 						document.getElementById("networkLabel").innerText += " (please switch to Monad testnet)";
 					}
 
-					// connect contract
+					// --- Connect to the contract ---
 					contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+					console.log("✅ Contract connected:", contract.address);
 
-					// fetch personal best silently
+					// --- Fetch personal best silently ---
 					try {
 						await fetchPersonalBest();
 					} catch (e) {
@@ -1627,6 +1719,7 @@
 					stopProcessing();
 				}
 			}
+
 
 
 		document.getElementById("connectWalletBtn").addEventListener("click", connectWallet);
@@ -1870,52 +1963,58 @@
 		function randomCell() {
 			return { x: Math.floor(Math.random() * CELLS), y: Math.floor(Math.random() * CELLS) };
 		}
+		// color schemes for different snakes
+const snakeColors = {
+  classic: { head: "#00ffaa", body: "rgba(0,255,204,", name: "Classic 🟩" },
+  fast: { head: "#00aaff", body: "rgba(0,170,255,", name: "Fast 🔵" },
+  hearty: { head: "#ff4444", body: "rgba(255,100,100,", name: "Hearty ❤️" },
+  long: { head: "#aa55ff", body: "rgba(170,85,255,", name: "Long 🟣" }
+};
 
 		function draw() {
 				ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-				// black background
 				ctx.fillStyle = "#000";
 				ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-				// food (white circle)
+				// draw food
 				ctx.fillStyle = "#fff";
 				ctx.beginPath();
 				ctx.arc((gameState.food.x + 0.5) * GRID, (gameState.food.y + 0.5) * GRID, GRID / 3, 0, Math.PI * 2);
 				ctx.fill();
 
-				// snake
+				const colors = snakeColors[gameState.type] || snakeColors.classic;
+
+				// draw snake
 				for (let i = 0; i < gameState.snake.length; i++) {
 					const s = gameState.snake[i];
-					const centerX = (s.x + 0.5) * GRID;
-					const centerY = (s.y + 0.5) * GRID;
+					const cx = (s.x + 0.5) * GRID;
+					const cy = (s.y + 0.5) * GRID;
 
 					if (i === 0) {
-						// Head - brighter + slightly bigger + eyes
-						ctx.fillStyle = "#00ffaa";
+						// head
+						ctx.fillStyle = colors.head;
 						ctx.beginPath();
-						ctx.arc(centerX, centerY, GRID / 2.1, 0, Math.PI * 2);
+						ctx.arc(cx, cy, GRID / 2.1, 0, Math.PI * 2);
 						ctx.fill();
 
-						// Eyes
+						// eyes
 						ctx.fillStyle = "#000";
 						ctx.beginPath();
-						ctx.arc(centerX - GRID / 5, centerY - GRID / 6, GRID / 10, 0, Math.PI * 2);
-						ctx.arc(centerX + GRID / 5, centerY - GRID / 6, GRID / 10, 0, Math.PI * 2);
+						ctx.arc(cx - GRID / 5, cy - GRID / 6, GRID / 10, 0, Math.PI * 2);
+						ctx.arc(cx + GRID / 5, cy - GRID / 6, GRID / 10, 0, Math.PI * 2);
 						ctx.fill();
 					} else {
-						// Body - circles that taper + fade toward tail
-						const t = i / gameState.snake.length; // 0 (head) → 1 (tail)
-						const opacity = 1 - t; // fade toward tail
-						const radius = GRID / 2.5 * (1 - t * 0.5); // shrink radius at tail
-
-						ctx.fillStyle = `rgba(0, 255, 204, ${0.4 + 0.6 * opacity})`;
+						const t = i / gameState.snake.length;
+						const opacity = 1 - t;
+						const radius = GRID / 2.5 * (1 - t * 0.5);
+						ctx.fillStyle = `${colors.body}${0.4 + 0.6 * opacity})`;
 						ctx.beginPath();
-						ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+						ctx.arc(cx, cy, radius, 0, Math.PI * 2);
 						ctx.fill();
 					}
 				}
 			}
+
 
 
 
@@ -2132,7 +2231,7 @@
 
 	/* ===== Game Over buttons ===== */
 	document.getElementById("goMenu").addEventListener("click", () => {
-		goToMainMenu();
+		returnToMainMenu();
 	});
 
 
@@ -2182,7 +2281,7 @@
 			gameState.type = typeName;
 			if (typeName === 'classic') { gameState.hearts = 1; gameState.speed = 150; }
 			else if (typeName === 'fast') { gameState.hearts = 1; gameState.speed = 80; }
-			else if (typeName === 'hearty') { gameState.hearts = 2; gameState.speed = 150; }
+			else if (typeName === 'hearty') { gameState.hearts = 3; gameState.speed = 150; }
 			else if (typeName === 'long') { gameState.hearts = 1; gameState.speed = 150; if (gameState.snake.length < 4) gameState.snake.push({ ...gameState.snake[gameState.snake.length - 1] }); }
 			updateHUD();
 		}
