@@ -173,27 +173,19 @@ contract SnakeMonxiaGame is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard {
     }
 
     function _updateLeaderboard(uint8 mode, address player, uint256 score) internal {
-        for (uint i = 0; i < 100; i++) {
-            if (score > topScores[mode][i]) {
+        // iterate slots; treat empty slots (score == 0) as available
+        for (uint256 i = 0; i < 100; i++) {
+            if (topScores[mode][i] == 0 || score > topScores[mode][i]) {
                 // Shift down
-                for (uint j = 99; j > i; j--) {
-                    topPlayers[mode][j] = topPlayers[mode][j-1];
-                    topScores[mode][j] = topScores[mode][j-1];
+                for (uint256 j = 99; j > i; j--) {
+                    topPlayers[mode][j] = topPlayers[mode][j - 1];
+                    topScores[mode][j] = topScores[mode][j - 1];
                 }
                 topPlayers[mode][i] = player;
                 topScores[mode][i] = score;
                 return;
             }
         }
-    }
-
-    // Views
-    function getTopLeaderboard(uint8 mode) public view returns (address[100] memory, uint256[100] memory) {
-        return (topPlayers[mode], topScores[mode]);
-    }
-
-    function getPersonalBest(uint8 mode) public view returns (uint256) {
-        return personalBests[mode][msg.sender];
     }
 
     // Utils
@@ -241,4 +233,31 @@ contract SnakeMonxiaGame is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard {
     function supportsInterface(bytes4 interfaceId) public view override(ERC721, ERC721URIStorage) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
+
+    // Return how many leaderboard entries exist for a mode
+    function topScoresLength(uint8 mode) public view returns (uint256) {
+        uint256 count = 0;
+        for (uint256 i = 0; i < 100; i++) {
+            if (topPlayers[mode][i] == address(0)) break;
+            count++;
+        }
+        return count;
+    }
+
+    // Return a leaderboard entry
+    function topScoresAt(uint8 mode, uint256 index) public view returns (address player, uint256 score) {
+        require(index < 100, "Out of range");
+        return (topPlayers[mode][index], topScores[mode][index]);
+    }
+
+    // Return full top list (for frontend)
+    function getTopPlayers(uint8 mode) external view returns (address[100] memory players, uint256[100] memory scores) {
+        return (topPlayers[mode], topScores[mode]);
+    }
+
+    // Return personal best for user
+    function getPersonalBest(uint8 mode, address player) external view returns (uint256) {
+        return personalBests[mode][player];
+    }
+
 }
