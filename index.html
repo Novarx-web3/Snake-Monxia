@@ -291,6 +291,26 @@
 						<button class="btn" id="connectWalletBtn">Connect Wallet</button>
 						<div class="muted" id="walletAddr">Not connected</div>
 					</div>
+					<!-- Wallet Selection Popup -->
+<div id="walletPopup" style="display:none;
+ position:fixed; top:0; left:0; width:100%; height:100%;
+ background:rgba(0,0,0,0.7); z-index:9999;
+ display:flex; align-items:center; justify-content:center;">
+  <div style="background:#111; border-radius:16px; padding:24px; width:300px;
+   text-align:center; color:#fff; box-shadow:0 0 20px rgba(0,255,204,0.2);">
+    <h3 style="margin-bottom:16px;">Select Wallet</h3>
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <button class="btn" id="walletMetaMask">🦊 MetaMask</button>
+      <button class="btn" id="walletBitget">🐉 Bitget Wallet</button>
+      <button class="btn" id="walletPhantom">👻 Phantom (EVM)</button>
+      <button class="btn" id="walletHaha">😄 Haha Wallet</button>
+      <button class="btn" id="walletInjected">🌐 Browser Wallet</button>
+      <button class="btn" id="walletWalletConnect">🔗 WalletConnect</button>
+      <button class="btn" id="walletClose">Cancel</button>
+    </div>
+  </div>
+</div>
+
 				</div>
 				<div style="text-align:right">
 					<div class="small">Network</div>
@@ -1669,58 +1689,113 @@
 		/* ============================
 		   Wallet + Contract init
 		   ============================ */
-		async function connectWallet() {
-				try {
-					startProcessing();
+		// ==================== WALLET CONNECTION ====================
 
-					// --- Universal EVM wallet detection ---
-					
+async function connectWalletPopup() {
+  document.getElementById("walletPopup").style.display = "flex";
+}
 
-					const injectedProvider = getAnyProvider();
-					if (!injectedProvider) {
-						alert("No Ethereum wallet detected. Please install MetaMask, Bitget, or another wallet.");
-						stopProcessing();
-						return;
-					}
-					provider = new ethers.providers.Web3Provider(injectedProvider, "any");
+document.getElementById("connectWalletBtn").addEventListener("click", connectWalletPopup);
+document.getElementById("walletClose").addEventListener("click", () => {
+  document.getElementById("walletPopup").style.display = "none";
+});
 
+async function connectWith(provider) {
+  try {
+    startProcessing();
+    const web3Provider = new ethers.providers.Web3Provider(provider, "any");
+    await web3Provider.send("eth_requestAccounts", []);
+    signer = web3Provider.getSigner();
+    userAddress = await signer.getAddress();
+    contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
 
-					// --- Create ethers provider ---
-					provider = new ethers.providers.Web3Provider(injectedProvider, "any");
-					await provider.send("eth_requestAccounts", []);
-					signer = provider.getSigner();
-					userAddress = await signer.getAddress();
+    // UI update
+    document.getElementById("walletAddr").innerText =
+      userAddress.slice(0, 6) + "..." + userAddress.slice(-4);
 
-					// --- Update UI ---
-					document.getElementById("walletAddr").innerText =
-						userAddress.slice(0, 6) + "..." + userAddress.slice(-4);
+    const net = await web3Provider.getNetwork();
+    document.getElementById("networkLabel").innerText = `chainId: ${net.chainId}`;
+    if (net.chainId !== 10143) {
+      document.getElementById("networkLabel").innerText += " (switch to Monad testnet)";
+    }
 
-					const net = await provider.getNetwork();
-					document.getElementById("networkLabel").innerText = `chainId: ${net.chainId}`;
+    await fetchPersonalBest().catch(() => {});
+    document.getElementById("walletPopup").style.display = "none";
+  } catch (e) {
+    console.error("connectWith:", e);
+    alert("Wallet connection failed: " + (e.message || e));
+  } finally {
+    stopProcessing();
+  }
+}
 
-					// Warn if not on Monad testnet
-					if (net.chainId !== 10143) {
-						document.getElementById("networkLabel").innerText += " (please switch to Monad testnet)";
-					}
+// ==================== PROVIDER HANDLERS ====================
 
-					// --- Connect to the contract ---
-					contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-					console.log("✅ Contract connected:", contract.address);
+async function connectMetaMask() {
+  if (!window.ethereum || !window.ethereum.isMetaMask) {
+    alert("MetaMask not detected. Please install MetaMask.");
+    return;
+  }
+  await connectWith(window.ethereum);
+}
 
-					// --- Fetch personal best silently ---
-					try {
-						await fetchPersonalBest();
-					} catch (e) {
-						console.warn("fetchPersonalBest failed:", e);
-					}
+async function connectBitget() {
+  const provider = window.bitkeep?.ethereum || window.ethereum;
+  if (!provider || !provider.isBitKeep) {
+    alert("Bitget Wallet not detected. Please install Bitget Wallet.");
+    return;
+  }
+  await connectWith(provider);
+}
 
-				} catch (e) {
-					console.error("connectWallet:", e);
-					alert("Wallet connection failed: " + (e && e.message ? e.message : e));
-				} finally {
-					stopProcessing();
-				}
-			}
+async function connectPhantom() {
+  const provider = window.phantom?.ethereum || window.ethereum;
+  if (!provider) {
+    alert("Phantom Wallet (EVM mode) not detected. Please install it.");
+    return;
+  }
+  await connectWith(provider);
+}
+
+async function connectHaha() {
+  const provider = window.hahaWallet?.ethereum || window.ethereum;
+  if (!provider) {
+    alert("Haha Wallet not detected. Please open in Haha Wallet browser.");
+    return;
+  }
+  await connectWith(provider);
+}
+
+async function connectInjected() {
+  if (!window.ethereum) {
+    alert("No injected wallet found in this browser.");
+    return;
+  }
+  await connectWith(window.ethereum);
+}
+
+async function connectWalletConnect() {
+  try {
+    const provider = await window.WalletConnectProvider.init({
+      projectId: "YOUR_PROJECT_ID", // Get from https://cloud.walletconnect.com
+      chains: [10143], // Monad Testnet
+      showQrModal: true,
+    });
+    await provider.enable();
+    await connectWith(provider);
+  } catch (e) {
+    console.error(e);
+    alert("WalletConnect initialization failed.");
+  }
+}
+
+// ==================== ATTACH BUTTON EVENTS ====================
+document.getElementById("walletMetaMask").addEventListener("click", connectMetaMask);
+document.getElementById("walletBitget").addEventListener("click", connectBitget);
+document.getElementById("walletPhantom").addEventListener("click", connectPhantom);
+document.getElementById("walletHaha").addEventListener("click", connectHaha);
+document.getElementById("walletInjected").addEventListener("click", connectInjected);
+document.getElementById("walletWalletConnect").addEventListener("click", connectWalletConnect);
 
 
 
@@ -2321,4 +2396,5 @@ const snakeColors = {
 </body>
 
 </html>
+
 
