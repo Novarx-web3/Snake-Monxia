@@ -1,0 +1,2158 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<title>Snake Monxia</title>
+
+	<!-- ethers v5 -->
+	<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+
+	<style>
+		:root {
+			--bg1: #0f2027;
+			--bg2: #203a43;
+			--bg3: #2c5364;
+			--card: rgba(0, 0, 0, 0.55);
+			--accent: #00ffcc;
+			--muted: rgba(255, 255, 255, 0.85);
+		}
+
+		html,
+		body {
+			height: 100%;
+			margin: 0;
+			font-family: Inter, ui-sans-serif, system-ui, Segoe UI, Roboto, "Helvetica Neue", Arial;
+		}
+
+		body {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			background: linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
+			color: var(--muted);
+			padding: 20px;
+		}
+
+		.container {
+			width: 100%;
+			max-width: 1050px;
+			display: grid;
+			grid-template-columns: 480px 1fr;
+			gap: 20px;
+			align-items: start;
+		}
+
+		.card {
+			background: var(--card);
+			border: 1px solid rgba(0, 255, 204, 0.12);
+			padding: 18px;
+			border-radius: 12px;
+			box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+		}
+
+		header h1 {
+			margin: 0;
+			font-size: 20px;
+			color: var(--accent);
+		}
+
+		header p {
+			margin: 6px 0 0;
+			font-size: 13px;
+			opacity: 0.9;
+		}
+
+		/* left column (menu + game) */
+		#left .menu {
+			display: flex;
+			flex-direction: column;
+			gap: 50%;
+			margin-top: 12px;
+		}
+
+		.btn {
+			background: transparent;
+			border: 1px solid var(--accent);
+			color: var(--accent);
+			padding: 10px 14px;
+			border-radius: 8px;
+			cursor: pointer;
+			font-weight: 600;
+		}	
+
+		.btn:hover {
+			background: var(--accent);
+			color: #001;
+			box-shadow: 0 8px 20px rgba(0, 255, 204, 0.06);
+		}
+
+		.top-row {
+			display: flex;
+			gap: 8px;
+			align-items: center;
+			justify-content: space-between;
+		}
+
+		.small {
+			font-size: 13px;
+			opacity: 0.9;
+		}
+
+		/* canvas */
+		#game-canvas {
+			width: 460px;
+			height: 460px;
+			background: #000;
+			border-radius: 20px;
+			display: block;
+			margin-top: 12px;
+			border: 2px solid rgba(0, 255, 204, 0.06);
+			image-rendering: pixelated;
+		}
+
+		.hud {
+			display: flex;
+			gap: 12px;
+			margin-top: 10px;
+			align-items: center;
+		}
+
+		.hud .item {
+			background: rgba(0, 0, 0, 0.4);
+			padding: 8px 10px;
+			border-radius: 8px;
+			border: 1px solid rgba(0, 255, 204, 0.04);
+		}
+
+		.hud .label {
+			font-size: 12px;
+			opacity: 0.8;
+		}
+
+		.hud .value {
+			font-family: monospace;
+			font-weight: 700;
+			color: var(--accent);
+		}
+
+		/* right column: screens stack and are swapped instantly */
+		.screens {
+			display: flex;
+			flex-direction: column;
+			gap: 12px;
+		}
+
+		.screen {
+			display: none;
+		}
+
+		/* only the active one is shown via JS */
+
+		.panel-title {
+			margin: 0;
+			color: var(--accent);
+			font-size: 16px;
+		}
+
+		/* leaderboard */
+		#leaderboard-table {
+			width: 100%;
+			border-collapse: collapse;
+			margin-top: 8px;
+			max-height: 420px;
+			overflow: auto;
+			display: block;
+		}
+
+		#leaderboard-table thead th {
+			text-align: left;
+			padding: 8px;
+			color: #ccffee;
+			font-size: 13px;
+			position: sticky;
+			top: 0;
+			background: transparent;
+		}
+
+		#leaderboard-table tbody {
+			display: block;
+			max-height: 360px;
+			overflow: auto;
+		}
+
+		#leaderboard-table tr {
+			display: table;
+			width: 100%;
+			table-layout: fixed;
+		}
+
+		#leaderboard-table td {
+			padding: 8px;
+			border-bottom: 1px solid rgba(0, 255, 204, 0.04);
+			font-size: 13px;
+		}
+
+		/* buttons row */
+		.row {
+			display: flex;
+			gap: 8px;
+			margin-top: 12px;
+			flex-wrap: wrap;
+		}
+
+		/* shimmer loader (processing indicator) */
+		.processing {
+			position: fixed;
+			left: 50%;
+			top: 12%;
+			transform: translateX(-50%);
+			width: 320px;
+			height: 10px;
+			border-radius: 8px;
+			background: linear-gradient(90deg, rgba(0, 0, 0, 0.3) 25%, rgba(0, 255, 204, 0.25) 50%, rgba(0, 0, 0, 0.3) 75%);
+			background-size: 200% 100%;
+			animation: shimmer 1.2s linear infinite;
+			box-shadow: 0 6px 30px rgba(0, 255, 204, 0.04);
+			display: none;
+			z-index: 9999;
+		}
+
+		@keyframes shimmer {
+			0% {
+				background-position: -200% 0;
+			}
+
+			100% {
+				background-position: 200% 0;
+			}
+		}
+
+		/* modal-like game over */
+		#game-over {
+			display: none;
+			position: absolute;
+			left: calc(50% - 200px);
+			top: calc(50% - 140px);
+			width: 400px;
+			background: var(--card);
+			border: 1px solid rgba(0, 255, 204, 0.08);
+			padding: 16px;
+			border-radius: 10px;
+			z-index: 999;
+		}
+
+		/* small util */
+		.muted {
+			opacity: 0.85;
+			font-size: 13px;
+		}
+
+		.label {
+			font-size: 12px;
+			color: #bfffd6;
+			opacity: 0.9;
+		}
+
+		/* responsive */
+		@media (max-width: 980px) {
+			.container {
+				grid-template-columns: 1fr;
+			}
+
+			#game-canvas {
+				width: 360px;
+				height: 360px;
+			}
+
+			#game-over {
+				left: 50%;
+				transform: translateX(-50%);
+				top: 40%;
+			}
+		}
+	</style>
+</head>
+
+<body>
+	<div class="container">
+		<!-- LEFT: Menu + Game -->
+		<div class="card" id="left">
+			<header>
+				<h1>🐍 Snake Monxia</h1>
+				<p>Retro meets web3 — mint snakes, play, and climb the on-chain leaderboard.</p>
+			</header>
+	
+			<div class="top-row" style="margin-top:12px">
+				<div>
+					<div class="small">Wallet</div>
+					<div style="display:flex; gap:8px; align-items:center; margin-top:6px;">
+						<button class="btn" id="connectWalletBtn">Connect Wallet</button>
+						<div class="muted" id="walletAddr">Not connected</div>
+					</div>
+				</div>
+				<div style="text-align:right">
+					<div class="small">Network</div>
+					<div class="muted" id="networkLabel">—</div>
+				</div>
+			</div>
+	<div class="processing" id="processingShimmer" aria-hidden="true"></div>
+
+			<!-- MAIN MENU (shown at first) -->
+			<div id="mainMenu" class="menu" style="margin-top:12px;">
+				<button class="btn" id="menuNewGame">New Game</button>
+				<button class="btn" id="menuBuySnakes">Buy Snakes</button>
+				<button class="btn" id="menuLeaderboard">Leaderboard</button>
+				<button class="btn" id="menuHelp">Help</button>
+				<button class="btn" id="menuExit">Exit</button>
+				<button class="btn" id="menuSelectSnake">Select Snake</button>
+
+				<div class="small" style="margin-top:10px;">
+					Tip: Mint the Classic snake first (0.01 MON). Other snakes require Classic ownership.
+				</div>
+			</div>
+
+			<!-- Game canvas (hidden until New Game) -->
+			<canvas id="game-canvas" width="420" height="420" style="display:none"></canvas>
+
+			<div class="hud" id="hud" style="display:none">
+				<div class="item">
+					<div class="label">Score</div>
+					<div class="value" id="uiScore">0</div>
+				</div>
+				<div class="item">
+					<div class="label">Hearts</div>
+					<div class="value" id="uiHearts">1</div>
+				</div>
+				<div class="item">
+					<div class="label">Type</div>
+					<div class="value" id="uiType">classic</div>
+				</div>
+				<div style="margin-left:auto">
+					<button class="btn" id="btnPause">Pause</button>
+				</div>
+			</div>
+
+			<!-- Game over modal (simple) -->
+			<div id="game-over" aria-hidden="true">
+				<h3 style="margin:0 0 8px;color:var(--accent)">Game Over</h3>
+				<div class="muted">Score: <strong id="finalScore">0</strong></div>
+				<div class="row" style="margin-top:12px;">
+					<button class="btn" id="goNewGame">New Game</button>
+					<button class="btn" id="goBuySnakes">Buy Snake</button>
+					<button class="btn" id="goMenu">Menu</button>
+				</div>
+			</div>
+		</div>
+		<!-- Pause Menu Overlay -->
+		<div id="pauseMenu" style="display:none; position:absolute; top:40%; left:50%; transform:translate(-50%,-50%);
+		 background:#111; color:#fff; padding:20px; border-radius:8px; text-align:center; z-index:1000;">
+			<h3>Paused</h3>
+			<button class="btn" id="pauseResume">Resume</button>
+			<button class="btn" id="pauseBackMenu">Back to Menu</button>
+		</div>
+
+			<div id="screenBuy" class="screen">
+				<h2 class="panel-title">Buy Snakes</h2>
+				<p class="muted">Classic must be minted first to play. Other snakes enhance gameplay.</p>
+				<div class="row">
+					<button class="btn" id="mintClassicBtn">Mint Classic — 0.01 MON</button>
+					<button class="btn" id="selectClassicBtn">Select Classic</button>
+				</div>
+				<div class="row">
+					<button class="btn" id="mintFastBtn">Mint Fast — 0.1 MON</button>
+					<button class="btn" id="selectFastBtn">Select Fast</button>
+				</div>
+				<div class="row">
+					<button class="btn" id="mintHeartyBtn">Mint Hearty — 0.1 MON</button>
+					<button class="btn" id="selectHeartyBtn">Select Hearty</button>
+				</div>
+				<div class="row">
+					<button class="btn" id="mintLongBtn">Mint Long — 0.1 MON</button>
+					<button class="btn" id="selectLongBtn">Select Long</button>
+				</div>
+				<div class="small" style="margin-top:12px;">
+					<strong>Note:</strong> Classic gives you the ability to play. Fast increases speed; Hearty gives extra heart(s); Long starts longer.
+				</div>
+				<div class="row" style="margin-top:12px;">
+					<button class="btn" id="buyBack">Back</button>
+				</div>
+			</div>
+			<div id="screenSelectSnake" class="screen">
+				<h2 class="panel-title">Select Snake</h2>
+				<p class="muted">Choose a snake type you’ve minted to play with.</p>
+				<div class="row">
+					<button class="btn" id="selectClassic">Classic</button>
+					<button class="btn" id="selectFast">Fast</button>
+					<button class="btn" id="selectHearty">Hearty</button>
+					<button class="btn" id="selectLong">Long</button>
+				</div>
+				<div class="row" style="margin-top:12px;">
+					<button class="btn" id="selectBack">Back</button>
+				</div>
+			</div>
+
+			</div>
+
+			<div id="screenLeaderboard" class="screen">
+				<h2 class="panel-title">Top 100 Leaderboard</h2>
+				<div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+					<div class="muted">Your Best: <strong id="personalBest">0</strong></div>
+					<div style="margin-left:auto">
+						<button class="btn" id="refreshLeaderboardBtn">Refresh</button>
+						<button class="btn" id="lbBack">Back</button>
+					</div>
+				</div>
+
+				<div id="lbLoader" style="margin-top:12px; display:none;">
+					<div
+						style="height:10px; border-radius:6px; background:linear-gradient(90deg,#071214 25%, #00ffcc 50%, #071214 75%); background-size:200% 100%; animation: shimmer 1.2s linear infinite;">
+					</div>
+				</div>
+
+				<table id="leaderboard-table" style="margin-top:12px;">
+					<thead>
+						<tr>
+							<th style="width:56px">#</th>
+							<th>Player</th>
+							<th style="width:120px">Score</th>
+						</tr>
+					</thead>
+					<tbody id="leaderboard-body" style="display:block; max-height:360px; overflow:auto"></tbody>
+				</table>
+			</div>
+
+			<div id="screenHelp" class="screen">
+				<h2 class="panel-title">Help</h2>
+				<p class="muted">Use arrow keys to move. Eat the white dot to score. If you die, your best score is
+					auto-submitted to the on-chain leaderboard. Mint Classic first to play. Other snakes change
+					gameplay.</p>
+				<div class="row"><button class="btn" id="helpBack">Back</button></div>
+			</div>
+
+			<div id="screenExit" class="screen">
+				<h2 class="panel-title">Exit</h2>
+				<p class="muted">Screen locked. Click "Back to Menu" to return.</p>
+				<div class="row"><button class="btn" id="exitBack">Back to Menu</button></div>
+			</div>
+
+		</div>
+	</div>
+
+	<script>
+		/* ============================
+		   CONFIG: set your contract info
+		   ============================ */
+		// Replace with your deployed contract and ABI
+	const CONTRACT_ADDRESS = "0xC06FA9679a9FF26BDb78082edc44568cb506D5a8"; // <<< replace me
+	// ABI (compact string ABI entries)
+	const CONTRACT_ABI = [
+		{
+			"inputs": [],
+			"stateMutability": "nonpayable",
+			"type": "constructor"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "sender",
+					"type": "address"
+				},
+				{
+					"internalType": "uint256",
+					"name": "tokenId",
+					"type": "uint256"
+				},
+				{
+					"internalType": "address",
+					"name": "owner",
+					"type": "address"
+				}
+			],
+			"name": "ERC721IncorrectOwner",
+			"type": "error"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "operator",
+					"type": "address"
+				},
+				{
+					"internalType": "uint256",
+					"name": "tokenId",
+					"type": "uint256"
+				}
+			],
+			"name": "ERC721InsufficientApproval",
+			"type": "error"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "approver",
+					"type": "address"
+				}
+			],
+			"name": "ERC721InvalidApprover",
+			"type": "error"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "operator",
+					"type": "address"
+				}
+			],
+			"name": "ERC721InvalidOperator",
+			"type": "error"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "owner",
+					"type": "address"
+				}
+			],
+			"name": "ERC721InvalidOwner",
+			"type": "error"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "receiver",
+					"type": "address"
+				}
+			],
+			"name": "ERC721InvalidReceiver",
+			"type": "error"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "sender",
+					"type": "address"
+				}
+			],
+			"name": "ERC721InvalidSender",
+			"type": "error"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint256",
+					"name": "tokenId",
+					"type": "uint256"
+				}
+			],
+			"name": "ERC721NonexistentToken",
+			"type": "error"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "owner",
+					"type": "address"
+				}
+			],
+			"name": "OwnableInvalidOwner",
+			"type": "error"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "account",
+					"type": "address"
+				}
+			],
+			"name": "OwnableUnauthorizedAccount",
+			"type": "error"
+		},
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": true,
+					"internalType": "address",
+					"name": "owner",
+					"type": "address"
+				},
+				{
+					"indexed": true,
+					"internalType": "address",
+					"name": "approved",
+					"type": "address"
+				},
+				{
+					"indexed": true,
+					"internalType": "uint256",
+					"name": "tokenId",
+					"type": "uint256"
+				}
+			],
+			"name": "Approval",
+			"type": "event"
+		},
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": true,
+					"internalType": "address",
+					"name": "owner",
+					"type": "address"
+				},
+				{
+					"indexed": true,
+					"internalType": "address",
+					"name": "operator",
+					"type": "address"
+				},
+				{
+					"indexed": false,
+					"internalType": "bool",
+					"name": "approved",
+					"type": "bool"
+				}
+			],
+			"name": "ApprovalForAll",
+			"type": "event"
+		},
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "_fromTokenId",
+					"type": "uint256"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "_toTokenId",
+					"type": "uint256"
+				}
+			],
+			"name": "BatchMetadataUpdate",
+			"type": "event"
+		},
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "_tokenId",
+					"type": "uint256"
+				}
+			],
+			"name": "MetadataUpdate",
+			"type": "event"
+		},
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": true,
+					"internalType": "address",
+					"name": "previousOwner",
+					"type": "address"
+				},
+				{
+					"indexed": true,
+					"internalType": "address",
+					"name": "newOwner",
+					"type": "address"
+				}
+			],
+			"name": "OwnershipTransferred",
+			"type": "event"
+		},
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": false,
+					"internalType": "address",
+					"name": "player",
+					"type": "address"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint8",
+					"name": "mode",
+					"type": "uint8"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "score",
+					"type": "uint256"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "coinsEarned",
+					"type": "uint256"
+				}
+			],
+			"name": "ScoreSubmitted",
+			"type": "event"
+		},
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "tokenId",
+					"type": "uint256"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint8",
+					"name": "skin",
+					"type": "uint8"
+				}
+			],
+			"name": "SkinApplied",
+			"type": "event"
+		},
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "tokenId",
+					"type": "uint256"
+				},
+				{
+					"indexed": false,
+					"internalType": "address",
+					"name": "owner",
+					"type": "address"
+				},
+				{
+					"components": [
+						{
+							"internalType": "uint8",
+							"name": "speed",
+							"type": "uint8"
+						},
+						{
+							"internalType": "uint8",
+							"name": "hearts",
+							"type": "uint8"
+						},
+						{
+							"internalType": "uint8",
+							"name": "length",
+							"type": "uint8"
+						},
+						{
+							"internalType": "uint8",
+							"name": "skin",
+							"type": "uint8"
+						},
+						{
+							"internalType": "bool",
+							"name": "isClassic",
+							"type": "bool"
+						}
+					],
+					"indexed": false,
+					"internalType": "struct SnakeMonxiaGame.SnakeAttributes",
+					"name": "attrs",
+					"type": "tuple"
+				}
+			],
+			"name": "SnakeMinted",
+			"type": "event"
+		},
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "tokenId",
+					"type": "uint256"
+				},
+				{
+					"indexed": false,
+					"internalType": "string",
+					"name": "attr",
+					"type": "string"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint8",
+					"name": "newValue",
+					"type": "uint8"
+				}
+			],
+			"name": "SnakeUpgraded",
+			"type": "event"
+		},
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": true,
+					"internalType": "address",
+					"name": "from",
+					"type": "address"
+				},
+				{
+					"indexed": true,
+					"internalType": "address",
+					"name": "to",
+					"type": "address"
+				},
+				{
+					"indexed": true,
+					"internalType": "uint256",
+					"name": "tokenId",
+					"type": "uint256"
+				}
+			],
+			"name": "Transfer",
+			"type": "event"
+		},
+		{
+			"inputs": [],
+			"name": "BASE_UPGRADE_COST",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "CLASSIC_MINT_PRICE",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "SKIN_PRICE",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "SPECIAL_MINT_PRICE",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint256",
+					"name": "tokenId",
+					"type": "uint256"
+				},
+				{
+					"internalType": "uint8",
+					"name": "skinId",
+					"type": "uint8"
+				}
+			],
+			"name": "applySkin",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "to",
+					"type": "address"
+				},
+				{
+					"internalType": "uint256",
+					"name": "tokenId",
+					"type": "uint256"
+				}
+			],
+			"name": "approve",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "owner",
+					"type": "address"
+				}
+			],
+			"name": "balanceOf",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint8",
+					"name": "current",
+					"type": "uint8"
+				},
+				{
+					"internalType": "uint8",
+					"name": "target",
+					"type": "uint8"
+				}
+			],
+			"name": "calculateUpgradeCost",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "pure",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "coins",
+			"outputs": [
+				{
+					"internalType": "contract MonxiaCoin",
+					"name": "",
+					"type": "address"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint256",
+					"name": "tokenId",
+					"type": "uint256"
+				}
+			],
+			"name": "getApproved",
+			"outputs": [
+				{
+					"internalType": "address",
+					"name": "",
+					"type": "address"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint8",
+					"name": "mode",
+					"type": "uint8"
+				}
+			],
+			"name": "getPersonalBest",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint8",
+					"name": "mode",
+					"type": "uint8"
+				}
+			],
+			"name": "getTopLeaderboard",
+			"outputs": [
+				{
+					"internalType": "address[100]",
+					"name": "",
+					"type": "address[100]"
+				},
+				{
+					"internalType": "uint256[100]",
+					"name": "",
+					"type": "uint256[100]"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "owner",
+					"type": "address"
+				},
+				{
+					"internalType": "address",
+					"name": "operator",
+					"type": "address"
+				}
+			],
+			"name": "isApprovedForAll",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"name": "isClassicSnake",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "to",
+					"type": "address"
+				}
+			],
+			"name": "mintClassic",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "payable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "to",
+					"type": "address"
+				}
+			],
+			"name": "mintFastSnake",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "payable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "to",
+					"type": "address"
+				}
+			],
+			"name": "mintHeartySnake",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "payable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "to",
+					"type": "address"
+				}
+			],
+			"name": "mintLongSnake",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "payable",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "name",
+			"outputs": [
+				{
+					"internalType": "string",
+					"name": "",
+					"type": "string"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "owner",
+			"outputs": [
+				{
+					"internalType": "address",
+					"name": "",
+					"type": "address"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint256",
+					"name": "tokenId",
+					"type": "uint256"
+				}
+			],
+			"name": "ownerOf",
+			"outputs": [
+				{
+					"internalType": "address",
+					"name": "",
+					"type": "address"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint8",
+					"name": "",
+					"type": "uint8"
+				},
+				{
+					"internalType": "address",
+					"name": "",
+					"type": "address"
+				}
+			],
+			"name": "personalBests",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "renounceOwnership",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "from",
+					"type": "address"
+				},
+				{
+					"internalType": "address",
+					"name": "to",
+					"type": "address"
+				},
+				{
+					"internalType": "uint256",
+					"name": "tokenId",
+					"type": "uint256"
+				}
+			],
+			"name": "safeTransferFrom",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "from",
+					"type": "address"
+				},
+				{
+					"internalType": "address",
+					"name": "to",
+					"type": "address"
+				},
+				{
+					"internalType": "uint256",
+					"name": "tokenId",
+					"type": "uint256"
+				},
+				{
+					"internalType": "bytes",
+					"name": "data",
+					"type": "bytes"
+				}
+			],
+			"name": "safeTransferFrom",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "operator",
+					"type": "address"
+				},
+				{
+					"internalType": "bool",
+					"name": "approved",
+					"type": "bool"
+				}
+			],
+			"name": "setApprovalForAll",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"name": "snakeAttributes",
+			"outputs": [
+				{
+					"internalType": "uint8",
+					"name": "speed",
+					"type": "uint8"
+				},
+				{
+					"internalType": "uint8",
+					"name": "hearts",
+					"type": "uint8"
+				},
+				{
+					"internalType": "uint8",
+					"name": "length",
+					"type": "uint8"
+				},
+				{
+					"internalType": "uint8",
+					"name": "skin",
+					"type": "uint8"
+				},
+				{
+					"internalType": "bool",
+					"name": "isClassic",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint8",
+					"name": "mode",
+					"type": "uint8"
+				},
+				{
+					"internalType": "uint256",
+					"name": "score",
+					"type": "uint256"
+				}
+			],
+			"name": "submitScore",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "bytes4",
+					"name": "interfaceId",
+					"type": "bytes4"
+				}
+			],
+			"name": "supportsInterface",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "",
+					"type": "bool"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "symbol",
+			"outputs": [
+				{
+					"internalType": "string",
+					"name": "",
+					"type": "string"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint256",
+					"name": "tokenId",
+					"type": "uint256"
+				}
+			],
+			"name": "tokenURI",
+			"outputs": [
+				{
+					"internalType": "string",
+					"name": "",
+					"type": "string"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint8",
+					"name": "",
+					"type": "uint8"
+				},
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"name": "topPlayers",
+			"outputs": [
+				{
+					"internalType": "address",
+					"name": "",
+					"type": "address"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint8",
+					"name": "",
+					"type": "uint8"
+				},
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"name": "topScores",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "from",
+					"type": "address"
+				},
+				{
+					"internalType": "address",
+					"name": "to",
+					"type": "address"
+				},
+				{
+					"internalType": "uint256",
+					"name": "tokenId",
+					"type": "uint256"
+				}
+			],
+			"name": "transferFrom",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "newOwner",
+					"type": "address"
+				}
+			],
+			"name": "transferOwnership",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint256",
+					"name": "tokenId",
+					"type": "uint256"
+				},
+				{
+					"internalType": "uint8",
+					"name": "newHearts",
+					"type": "uint8"
+				}
+			],
+			"name": "upgradeHearts",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint256",
+					"name": "tokenId",
+					"type": "uint256"
+				},
+				{
+					"internalType": "uint8",
+					"name": "newLengthBonus",
+					"type": "uint8"
+				}
+			],
+			"name": "upgradeLength",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint256",
+					"name": "tokenId",
+					"type": "uint256"
+				},
+				{
+					"internalType": "uint8",
+					"name": "newSpeed",
+					"type": "uint8"
+				}
+			],
+			"name": "upgradeSpeed",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		}
+
+	];
+
+		const MODE_CLASSIC = 0; // mode id passed to submitScore/top queries
+
+		/* ============================
+		   State & helpers
+		   ============================ */
+		let provider = null;
+		let signer = null;
+		let contract = null;
+		let userAddress = null;
+		const processingShimmer = document.getElementById("processingShimmer");
+
+		function startProcessing() {
+			processingShimmer.style.display = "block";
+		}
+		function stopProcessing() {
+			processingShimmer.style.display = "none";
+		}
+
+		/* ============================
+		   Wallet + Contract init
+		   ============================ */
+		async function connectWallet() {
+				try {
+					startProcessing();
+
+					// Handle multiple injected providers
+					let injectedProvider = null;
+					if (typeof window.ethereum !== "undefined") {
+						if (window.ethereum.providers?.length) {
+							// pick MetaMask if available, otherwise first provider
+							injectedProvider = window.ethereum.providers.find(p => p.isMetaMask) || window.ethereum.providers[0];
+						} else {
+							injectedProvider = window.ethereum;
+						}
+					}
+
+					if (!injectedProvider) {
+						alert("No Ethereum wallet detected. Please install MetaMask or another wallet extension.");
+						stopProcessing();
+						return;
+					}
+
+					// Create ethers provider from the injected wallet
+					provider = new ethers.providers.Web3Provider(injectedProvider, "any");
+					await provider.send("eth_requestAccounts", []);
+					signer = provider.getSigner();
+					userAddress = await signer.getAddress();
+
+					// update UI
+					document.getElementById("walletAddr").innerText =
+						userAddress.slice(0, 6) + "..." + userAddress.slice(-4);
+
+					const net = await provider.getNetwork();
+					document.getElementById("networkLabel").innerText = `chainId: ${net.chainId}`;
+
+					// Require Monad testnet chainId = 10143
+					if (net.chainId !== 10143) {
+						document.getElementById("networkLabel").innerText += " (please switch to Monad testnet)";
+					}
+
+					// connect contract
+					contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+
+					// fetch personal best silently
+					try {
+						await fetchPersonalBest();
+					} catch (e) {
+						console.warn("fetchPersonalBest failed:", e);
+					}
+
+				} catch (e) {
+					console.error("connectWallet:", e);
+					alert("Wallet connection failed: " + (e && e.message ? e.message : e));
+				} finally {
+					stopProcessing();
+				}
+			}
+
+
+		document.getElementById("connectWalletBtn").addEventListener("click", connectWallet);
+
+		/* ============================
+		   Screen swap helpers (instant)
+		   ============================ */
+		function showScreen(id) {
+			document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+			const el = document.getElementById(id);
+			if (el) el.style.display = 'block';
+		}
+
+		/* Menu buttons */
+		document.getElementById("menuNewGame").addEventListener("click", async () => {
+			// must have Classic minted (balanceOf > 0). We'll check contract.balanceOf(user)
+			if (!signer || !contract) {
+				alert("Please connect your wallet first.");
+				return;
+			}
+			startProcessing();
+			try {
+				const addr = await signer.getAddress();
+				// check balanceOf
+				const bal = await contract.balanceOf(addr);
+				const has = bal && bal.toNumber && bal.toNumber() > 0;
+				if (!has) {
+					alert("You must mint the Classic snake first (Buy Snakes → Mint Classic).");
+					showScreen('screenBuy');
+					return;
+				}
+				// show game UI
+				openGame();
+			} catch (e) {
+				console.error(e);
+				alert("Could not verify ownership: " + (e.message || e));
+			} finally {
+				stopProcessing();
+			}
+		});
+
+		document.getElementById("menuBuySnakes").addEventListener("click", () => showScreen('screenBuy'));
+		document.getElementById("menuLeaderboard").addEventListener("click", () => { showScreen('screenLeaderboard'); fetchLeaderboard(); });
+		document.getElementById("menuHelp").addEventListener("click", () => showScreen('screenHelp'));
+		document.getElementById("menuExit").addEventListener("click", () => showScreen('screenExit'));
+
+		document.getElementById("buyBack").addEventListener("click", () => showScreen('screenMenu'));
+		document.getElementById("lbBack").addEventListener("click", () => showScreen('screenMenu'));
+		document.getElementById("helpBack").addEventListener("click", () => showScreen('screenMenu'));
+		document.getElementById("exitBack").addEventListener("click", () => showScreen('screenMenu'));
+
+		/* Game Over modal buttons */
+		document.getElementById("goNewGame").addEventListener("click", () => { document.getElementById('game-over').style.display = 'none'; resetAndStartGame(); });
+		document.getElementById("goBuySnakes").addEventListener("click", () => { document.getElementById('game-over').style.display = 'none'; showScreen('screenBuy'); });
+		document.getElementById("goMenu").addEventListener("click", () => { document.getElementById('game-over').style.display = 'none'; showScreen('screenMenu'); });
+
+		/* ============================
+		   Minting wrappers (safeTx)
+		   ============================ */
+		async function safeTx(fn) {
+			if (!contract || !signer) { alert("Connect wallet first"); return; }
+			startProcessing();
+			try {
+				const tx = await fn();
+				// if tx is a TransactionResponse, wait for it
+				if (tx && typeof tx.wait === 'function') {
+					await tx.wait();
+				}
+				// small delay so UI shimmer is visible for short txs
+				await new Promise(res => setTimeout(res, 500));
+			} finally {
+				stopProcessing();
+			}
+		}
+
+		document.getElementById("mintClassicBtn").addEventListener("click", async () => {
+			if (!contract || !signer) { alert("Connect wallet first"); return; }
+			await safeTx(async () => contract.mintClassic(await signer.getAddress(), { value: ethers.utils.parseEther("0.01"), gasLimit: 400000 }));
+			alert("Classic minted (if transaction succeeded). You can now New Game.");
+		});
+
+		document.getElementById("mintFastBtn").addEventListener("click", async () => {
+			if (!contract || !signer) { alert("Connect wallet first"); return; }
+			await safeTx(async () => contract.mintFastSnake(await signer.getAddress(), { value: ethers.utils.parseEther("0.1"), gasLimit: 400000 }));
+			alert("Fast snake minted (if transaction succeeded).");
+		});
+
+		document.getElementById("mintHeartyBtn").addEventListener("click", async () => {
+			if (!contract || !signer) { alert("Connect wallet first"); return; }
+			await safeTx(async () => contract.mintHeartySnake(await signer.getAddress(), { value: ethers.utils.parseEther("0.1"), gasLimit: 400000 }));
+			alert("Hearty snake minted (if transaction succeeded).");
+		});
+
+		document.getElementById("mintLongBtn").addEventListener("click", async () => {
+			if (!contract || !signer) { alert("Connect wallet first"); return; }
+			await safeTx(async () => contract.mintLongSnake(await signer.getAddress(), { value: ethers.utils.parseEther("0.1"), gasLimit: 400000 }));
+			alert("Long snake minted (if transaction succeeded).");
+		});
+
+		/* ============================
+		   Leaderboard fetching (Top 100)
+		   - tries topScoresLength/topScores(mode,i)
+		   - falls back to getTopPlayers(topN)
+		   - updates #personalBest
+		   ============================ */
+		async function fetchPersonalBest() {
+			if (!contract || !signer) return;
+			try {
+				const addr = await signer.getAddress();
+				// Several possible function shapes; try them until one works
+				try {
+					const pb = await contract.personalBests(MODE_CLASSIC, addr);
+					document.getElementById('personalBest').innerText = Number(pb.toString());
+					return;
+				} catch (e) { /* try next */ }
+				try {
+					const pb = await contract.personalBests(addr, MODE_CLASSIC);
+					document.getElementById('personalBest').innerText = Number(pb.toString());
+					return;
+				} catch (e) { /* try next */ }
+				try {
+					const pb = await contract.getPersonalBest(MODE_CLASSIC);
+					if (pb) document.getElementById('personalBest').innerText = Number(pb.toString());
+					return;
+				} catch (e) { /* nothing */ }
+			} catch (e) { console.debug("fetchPersonalBest:", e); }
+		}
+
+		async function fetchLeaderboard() {
+			if (!contract || !signer) { alert("Connect wallet first"); return; }
+			startProcessing();
+			document.getElementById('lbLoader').style.display = 'block';
+			const tbody = document.getElementById('leaderboard-body');
+			tbody.innerHTML = '';
+			try {
+				// try topScoresLength(mode)
+				let len = 0;
+				try {
+					const lenBn = await contract.topScoresLength(MODE_CLASSIC);
+					len = Math.min(100, lenBn.toNumber());
+				} catch (e) {
+					len = 0;
+				}
+
+				if (len > 0) {
+					for (let i = 0; i < len; i++) {
+						try {
+							const sd = await contract.topScores(MODE_CLASSIC, i);
+							// sd might be tuple [addr, score] or object { player, score }
+							const player = sd.player || sd[0];
+							const score = sd.score || sd[1];
+							const tr = document.createElement('tr');
+							tr.innerHTML = `<td style="width:56px">${i + 1}</td><td style="font-family:monospace">${player.slice(0, 6)}...${player.slice(-4)}</td><td style="width:120px">${Number(score.toString())}</td>`;
+							tbody.appendChild(tr);
+						} catch (e) {
+							break;
+						}
+					}
+				} else {
+					// fallback to getTopPlayers(topN)
+					try {
+						const topN = 100;
+						const res = await contract.getTopPlayers(topN);
+						const addrs = res[0] || res[0];
+						const scores = res[1] || res[1];
+						for (let i = 0; i < addrs.length; i++) {
+							const a = addrs[i];
+							const sc = scores[i];
+							if (!a || a === '0x0000000000000000000000000000000000000000') continue;
+							const tr = document.createElement('tr');
+							tr.innerHTML = `<td style="width:56px">${i + 1}</td><td style="font-family:monospace">${a.slice(0, 6)}...${a.slice(-4)}</td><td style="width:120px">${Number(sc.toString())}</td>`;
+							tbody.appendChild(tr);
+						}
+					} catch (e) {
+						// no leaderboard available
+						const tr = document.createElement('tr');
+						tr.innerHTML = `<td colspan="3">Leaderboard not available from contract</td>`;
+						tbody.appendChild(tr);
+					}
+				}
+
+				await fetchPersonalBest();
+			} catch (e) {
+				console.error("fetchLeaderboard:", e);
+				alert("Failed to fetch leaderboard: " + (e && e.message ? e.message : e));
+			} finally {
+				stopProcessing();
+				document.getElementById('lbLoader').style.display = 'none';
+			}
+		}
+
+		document.getElementById('refreshLeaderboardBtn').addEventListener('click', fetchLeaderboard);
+
+		/* ============================
+		   GAME: canvas snake logic
+		   - menu opens first, game is hidden until "New Game" clicked
+		   - snakes minted on-chain affect type/state (we simulate type by setting it client-side after mint)
+		   ============================ */
+		const canvas = document.getElementById('game-canvas');
+		const ctx = canvas.getContext('2d');
+
+		const GRID = 20;
+		const CELLS = canvas.width / GRID;
+
+		let gameState = {
+			snake: [{ x: 10, y: 10 }],
+			dir: { x: 1, y: 0 },
+			food: { x: 15, y: 15 },
+			score: 0,
+			hearts: 1,
+			type: 'classic',
+			speed: 150,
+			running: false,
+			tickTimer: null
+		};
+
+		function openGame() {
+			// hide menu, show canvas + HUD
+			document.getElementById('mainMenu').style.display = 'none';
+			document.getElementById('game-canvas').style.display = 'block';
+			document.getElementById('hud').style.display = 'flex';
+			document.getElementById('game-over').style.display = 'none';
+			resetAndStartGame();
+		}
+
+		function resetAndStartGame() {
+			gameState.snake = [{ x: 10, y: 10 }];
+			gameState.dir = { x: 1, y: 0 };
+			gameState.food = randomCell();
+			gameState.score = 0;
+			gameState.hearts = 1;
+			gameState.type = currentSnakeType;
+			setType(currentSnakeType); // applies hearts/speed rules for the chosen snake
+			gameState.speed = 150;
+			gameState.running = true;
+			updateHUD();
+			draw();
+			scheduleTick();
+		}
+
+		function randomCell() {
+			return { x: Math.floor(Math.random() * CELLS), y: Math.floor(Math.random() * CELLS) };
+		}
+
+		function draw() {
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+				// black background
+				ctx.fillStyle = "#000";
+				ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+				// food (white circle)
+				ctx.fillStyle = "#fff";
+				ctx.beginPath();
+				ctx.arc((gameState.food.x + 0.5) * GRID, (gameState.food.y + 0.5) * GRID, GRID / 3, 0, Math.PI * 2);
+				ctx.fill();
+
+				// snake
+				for (let i = 0; i < gameState.snake.length; i++) {
+					const s = gameState.snake[i];
+					const centerX = (s.x + 0.5) * GRID;
+					const centerY = (s.y + 0.5) * GRID;
+
+					if (i === 0) {
+						// Head - brighter + slightly bigger + eyes
+						ctx.fillStyle = "#00ffaa";
+						ctx.beginPath();
+						ctx.arc(centerX, centerY, GRID / 2.1, 0, Math.PI * 2);
+						ctx.fill();
+
+						// Eyes
+						ctx.fillStyle = "#000";
+						ctx.beginPath();
+						ctx.arc(centerX - GRID / 5, centerY - GRID / 6, GRID / 10, 0, Math.PI * 2);
+						ctx.arc(centerX + GRID / 5, centerY - GRID / 6, GRID / 10, 0, Math.PI * 2);
+						ctx.fill();
+					} else {
+						// Body - circles that taper + fade toward tail
+						const t = i / gameState.snake.length; // 0 (head) → 1 (tail)
+						const opacity = 1 - t; // fade toward tail
+						const radius = GRID / 2.5 * (1 - t * 0.5); // shrink radius at tail
+
+						ctx.fillStyle = `rgba(0, 255, 204, ${0.4 + 0.6 * opacity})`;
+						ctx.beginPath();
+						ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+						ctx.fill();
+					}
+				}
+			}
+
+
+
+		function scheduleTick() {
+			clearTimeout(gameState.tickTimer);
+			gameState.tickTimer = setTimeout(tick, gameState.speed);
+		}
+
+		function tick() {
+			if (!gameState.running) { scheduleTick(); return; }
+			// compute head (wrap)
+			let head = { x: gameState.snake[0].x + gameState.dir.x, y: gameState.snake[0].y + gameState.dir.y };
+			if (head.x >= CELLS) head.x = 0;
+			if (head.x < 0) head.x = CELLS - 1;
+			if (head.y >= CELLS) head.y = 0;
+			if (head.y < 0) head.y = CELLS - 1;
+
+			// collision with self?
+			for (let i = 1; i < gameState.snake.length; i++) {
+				if (head.x === gameState.snake[i].x && head.y === gameState.snake[i].y) {
+					// if hearts > 1, consume a heart
+					if (gameState.hearts > 1) {
+						gameState.hearts -= 1;
+						// shorten snake
+						gameState.snake = gameState.snake.slice(0, Math.max(1, Math.floor(gameState.snake.length / 2)));
+						updateHUD();
+						draw();
+						return scheduleTick();
+					} else {
+						return onGameOver();
+					}
+				}
+			}
+
+			// move
+			gameState.snake.unshift(head);
+
+			// eat food?
+			if (head.x === gameState.food.x && head.y === gameState.food.y) {
+				gameState.score += 10;
+				// growth / special effects
+				if (gameState.type === 'hearty') {
+					// add two extra segments
+					gameState.snake.push({ ...gameState.snake[gameState.snake.length - 1] });
+					gameState.snake.push({ ...gameState.snake[gameState.snake.length - 1] });
+					gameState.hearts = Math.max(1, gameState.hearts); // hearts unaffected
+				}
+				if (gameState.type === 'long') {
+					// start longer - we already grew once by eating
+					// ensure minimum length
+					while (gameState.snake.length < 6) gameState.snake.push({ ...gameState.snake[gameState.snake.length - 1] });
+				}
+				if (gameState.type === 'fast') {
+					// faster: reduce interval temporarily
+					gameState.speed = Math.max(60, gameState.speed - 10);
+				}
+				gameState.food = randomCell();
+				updateHUD();
+			} else {
+				gameState.snake.pop();
+			}
+
+			updateHUD();
+			draw();
+			scheduleTick();
+		}
+
+		function updateHUD() {
+				document.getElementById('uiScore').innerText = gameState.score;
+				document.getElementById('uiHearts').innerText = "❤️".repeat(gameState.hearts); // show hearts as emoji
+				document.getElementById('uiType').innerText = gameState.type;
+			}
+
+
+		// keyboard control
+		window.addEventListener('keydown', (e) => {
+			if (!gameState.running) return;
+			if (e.key === 'ArrowUp' && gameState.dir.y !== 1) gameState.dir = { x: 0, y: -1 };
+			else if (e.key === 'ArrowDown' && gameState.dir.y !== -1) gameState.dir = { x: 0, y: 1 };
+			else if (e.key === 'ArrowLeft' && gameState.dir.x !== 1) gameState.dir = { x: -1, y: 0 };
+			else if (e.key === 'ArrowRight' && gameState.dir.x !== -1) gameState.dir = { x: 1, y: 0 };
+		});
+
+
+		function onGameOver() {
+			gameState.running = false;
+			document.getElementById('finalScore').innerText = gameState.score;
+			document.getElementById('game-over').style.display = 'block';
+			// attempt to submit score on-chain (auto)
+			submitScoreOnChain(MODE_CLASSIC, gameState.score).catch(e => { console.warn("Auto submit failed", e); });
+		}
+
+		/* ============================
+		   On-chain score submission
+		   ============================ */
+		async function submitScoreOnChain(mode, scoreVal) {
+			if (!contract || !signer) {
+				console.debug("submitScoreOnChain: wallet not connected");
+				return;
+			}
+			try {
+				startProcessing();
+				// call submitScore(uint8,uint256)
+				const tx = await contract.submitScore(mode, scoreVal, { gasLimit: 400000 });
+				await tx.wait();
+				// refresh leaderboard after submit
+				await fetchLeaderboard();
+			} catch (e) {
+				console.error("submitScoreOnChain:", e);
+			} finally {
+				stopProcessing();
+			}
+		}
+
+	// Helper: restore original main menu layout
+	function goToMainMenu() {
+			// hide game parts
+			document.getElementById('hud').style.display = 'none';
+			document.getElementById('game-canvas').style.display = 'none';
+			document.getElementById('game-over').style.display = 'none';
+			document.getElementById('pauseMenu').style.display = 'none';
+
+			// show left-side main menu buttons again
+			document.getElementById('mainMenu');
+
+		}
+
+
+	/* ===== Pause handling ===== */
+	document.getElementById('btnPause').addEventListener('click', () => {
+		gameState.running = false;
+		document.getElementById('pauseMenu').style.display = 'block';
+
+		document.getElementById('pauseResume').addEventListener('click', () => {
+			document.getElementById('pauseMenu').style.display = 'none';
+			if (!gameState.running) {
+				gameState.running = true;
+				scheduleTick();  // re-start ticking
+			}
+		});
+
+
+		document.getElementById('pauseBackMenu').addEventListener('click', () => {
+			goToMainMenu();
+		});
+
+	});
+
+	
+
+	/* ===== Game Over buttons ===== */
+	document.getElementById("goMenu").addEventListener("click", () => {
+		goToMainMenu();
+	});
+
+
+
+		// Snake selection after mint
+		let currentSnakeType = "classic";
+		function selectSnake(type) {
+			currentSnakeType = type;
+			setType(type);
+			alert("Selected snake: " + type);
+		}
+		document.getElementById("selectClassicBtn").addEventListener("click", () => selectSnake("classic"));
+		document.getElementById("selectFastBtn").addEventListener("click", () => selectSnake("fast"));
+		document.getElementById("selectHeartyBtn").addEventListener("click", () => selectSnake("hearty"));
+		document.getElementById("selectLongBtn").addEventListener("click", () => selectSnake("long"));
+		/* ============================
+	   Snake Selection Screen
+	   ============================ */
+			document.getElementById("menuSelectSnake")?.addEventListener("click", () => {
+				showScreen("screenSelectSnake");
+			});
+
+			document.getElementById("selectClassic").addEventListener("click", () => {
+				selectSnake("classic");
+				goToMainMenu();
+			});
+			document.getElementById("selectFast").addEventListener("click", () => {
+				selectSnake("fast");
+				goToMainMenu();
+			});
+			document.getElementById("selectHearty").addEventListener("click", () => {
+				selectSnake("hearty");
+				goToMainMenu();
+			});
+			document.getElementById("selectLong").addEventListener("click", () => {
+				selectSnake("long");
+				goToMainMenu();
+			});
+
+			document.getElementById("selectBack").addEventListener("click", () => {
+				showScreen("screenMenu");
+			});
+
+
+		// Helpers: set current snake type after mint (client side)
+		function setType(typeName) {
+			gameState.type = typeName;
+			if (typeName === 'classic') { gameState.hearts = 1; gameState.speed = 150; }
+			else if (typeName === 'fast') { gameState.hearts = 1; gameState.speed = 80; }
+			else if (typeName === 'hearty') { gameState.hearts = 2; gameState.speed = 150; }
+			else if (typeName === 'long') { gameState.hearts = 1; gameState.speed = 150; if (gameState.snake.length < 4) gameState.snake.push({ ...gameState.snake[gameState.snake.length - 1] }); }
+			updateHUD();
+		}
+
+		/* ============================
+		   Initial boot
+		   ============================ */
+		(async function bootstrap() {
+			showScreen('screenMenu'); // show menu area
+			// start with menu visible; canvas hidden
+			// try auto connect quietly if wallet already present (no popup)
+			if (window.ethereum) {
+				try {
+					provider = new ethers.providers.Web3Provider(window.ethereum);
+					const accounts = await provider.listAccounts();
+					if (accounts && accounts.length > 0) {
+						// user previously connected - set up signer/contract
+						signer = provider.getSigner();
+						userAddress = await signer.getAddress();
+						document.getElementById("walletAddr").innerText = userAddress.slice(0, 6) + "..." + userAddress.slice(-4);
+						const net = await provider.getNetwork();
+						document.getElementById("networkLabel").innerText = `chainId: ${net.chainId}`;
+						contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+						// fetch personal best silently
+						try { await fetchPersonalBest(); } catch (e) { /* ignore */ }
+					} else {
+						document.getElementById("networkLabel").innerText = 'Not connected';
+					}
+				} catch (e) { console.debug("bootstrap connect ignored:", e); }
+			} else {
+				document.getElementById("networkLabel").innerText = 'No wallet';
+			}
+		})();
+	</script>
+</body>
+
+</html>
