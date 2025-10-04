@@ -425,7 +425,7 @@
 
 			<div id="screenHelp" class="screen">
 				<h2 class="panel-title">Help</h2>
-				<p class="muted">Use arrow keys to move. Eat the white dot to score. If you die, your best score is
+				<p class="muted">Swipe or tap at the direction you want to move to or use arrow keys to move if your on PC. Eat the white dot to score. If you die, your best score is
 					auto-submitted to the on-chain leaderboard. Mint Classic first to play. Other snakes change
 					gameplay.</p>
 				<div class="row"><button class="btn" id="helpBack">Back</button></div>
@@ -1998,6 +1998,51 @@
 			else if (e.key === 'ArrowLeft' && gameState.dir.x !== 1) gameState.dir = { x: -1, y: 0 };
 			else if (e.key === 'ArrowRight' && gameState.dir.x !== -1) gameState.dir = { x: 1, y: 0 };
 		});
+		/* ============================
+	   Touch controls (for mobile)
+	   ============================ */
+			let touchStartX = 0;
+			let touchStartY = 0;
+
+			canvas.addEventListener('touchstart', (e) => {
+				const touch = e.touches[0];
+				touchStartX = touch.clientX;
+				touchStartY = touch.clientY;
+			});
+
+			canvas.addEventListener('touchend', (e) => {
+				if (!gameState.running) return;
+				const touch = e.changedTouches[0];
+				const dx = touch.clientX - touchStartX;
+				const dy = touch.clientY - touchStartY;
+				const absX = Math.abs(dx);
+				const absY = Math.abs(dy);
+
+				// Small movements are ignored
+				if (Math.max(absX, absY) < 20) {
+					// Optional: tap handling (tap top/bottom/left/right region of screen)
+					const rect = canvas.getBoundingClientRect();
+					const x = touch.clientX - rect.left;
+					const y = touch.clientY - rect.top;
+					const midX = rect.width / 2;
+					const midY = rect.height / 2;
+
+					if (y < midY / 1.5 && gameState.dir.y !== 1) gameState.dir = { x: 0, y: -1 }; // tap upper area
+					else if (y > midY * 1.5 && gameState.dir.y !== -1) gameState.dir = { x: 0, y: 1 }; // lower area
+					else if (x < midX / 1.5 && gameState.dir.x !== 1) gameState.dir = { x: -1, y: 0 }; // left area
+					else if (x > midX * 1.5 && gameState.dir.x !== -1) gameState.dir = { x: 1, y: 0 }; // right area
+					return;
+				}
+
+				// Swipe detection
+				if (absX > absY) {
+					if (dx > 0 && gameState.dir.x !== -1) gameState.dir = { x: 1, y: 0 }; // swipe right
+					else if (dx < 0 && gameState.dir.x !== 1) gameState.dir = { x: -1, y: 0 }; // swipe left
+				} else {
+					if (dy > 0 && gameState.dir.y !== -1) gameState.dir = { x: 0, y: 1 }; // swipe down
+					else if (dy < 0 && gameState.dir.y !== 1) gameState.dir = { x: 0, y: -1 }; // swipe up
+				}
+			});
 
 
 		function onGameOver() {
@@ -2042,6 +2087,24 @@
 			document.getElementById('mainMenu');
 
 		}
+		function returnToMainMenu() {
+				// Stop the game
+				gameState.running = false;
+				clearTimeout(gameState.tickTimer);
+
+				// Hide all other views
+				document.getElementById('pauseMenu').style.display = 'none';
+				document.getElementById('game-over').style.display = 'none';
+				document.getElementById('game-canvas').style.display = 'none';
+				document.getElementById('hud').style.display = 'none';
+
+				// Reset menu buttons and layout
+				document.getElementById('mainMenu').style.display = 'flex';
+				showScreen('screenMenu');
+
+				// Reset pause button text
+				document.getElementById('btnPause').innerText = 'Pause';
+			}
 
 
 	/* ===== Pause handling ===== */
@@ -2055,11 +2118,12 @@
 				gameState.running = true;
 				scheduleTick();  // re-start ticking
 			}
+			document.getElementById('btnPause').innerText = 'Pause';
 		});
 
 
 		document.getElementById('pauseBackMenu').addEventListener('click', () => {
-			goToMainMenu();
+			returnToMainMenu();
 		});
 
 	});
