@@ -53,7 +53,7 @@
 
         .card {
             background: var(--card);
-            border-radius: : 14px;
+            border-radius: 14px;
             padding: 16px;
             border: 1px solid rgba(155, 89, 255, 0.1);
         }
@@ -68,6 +68,8 @@
         .right {
             display: none;
         }
+
+        /* Hidden on mobile, show on desktop */
 
         header h1 {
             margin: 0;
@@ -149,7 +151,7 @@
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        . touch-controls {
+        .touch-controls {
             position: absolute;
             left: 0;
             right: 0;
@@ -276,6 +278,7 @@
             text-align: left;
         }
 
+        /* Desktop */
         @media (min-width: 768px) {
             body {
                 padding: 28px;
@@ -348,7 +351,7 @@
                     </div>
                     <div class="item">
                         <div class="label">Lives</div>
-                        <div class="value" id="lives">Heart</div>
+                        <div class="value" id="lives">💜</div>
                     </div>
                     <div class="item">
                         <div class="label">Type</div>
@@ -435,24 +438,36 @@
 
     <div id="toastContainer"></div>
 
-    <!-- Supabase -->
-    <script type="module"
-        src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+    <script type="module" src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 
-    <!-- Web3Modal + Wagmi (via CDN - no importmap) -->
+    <!-- ESM Import Map -->
+    <script type="importmap">
+    {
+      "imports": {
+        "viem": "https://cdn.jsdelivr.net/npm/viem@2.21.1/+esm",
+        "wagmi": "https://cdn.jsdelivr.net/npm/wagmi@2.12.16/+esm",
+        "@wagmi/connectors": "https://cdn.jsdelivr.net/npm/@wagmi/connectors@5.1.12/+esm",
+        "@web3modal/wagmi": "https://cdn.jsdelivr.net/npm/@web3modal/wagmi@5.1.12/+esm"
+      }
+    }
+    </script>
+
     <script type="module">
-        // Load Web3Modal
-        import { createWeb3Modal } from 'https://unpkg.com/@web3modal/wagmi@5.1.12/dist/esm/index.js';
-        import { walletConnect, metaMask, coinbaseWallet } from 'https://unpkg.com/@wagmi/connectors@5.1.12/dist/esm/index.js';
-        import { createConfig, http } from 'https://unpkg.com/wagmi@2.12.16/dist/esm/index.js';
-        import { createPublicClient, createWalletClient, custom, getContract, parseEther } from 'https://unpkg.com/viem@2.21.1/dist/esm/index.js';
+        import { createWeb3Modal } from '@web3modal/wagmi';
+        import { walletConnect, metaMask, coinbaseWallet } from '@wagmi/connectors';
+        import { createConfig, http } from 'wagmi';
+        import { createPublicClient, createWalletClient, custom, getContract, parseEther } from 'viem';
 
         const monadTestnet = {
             id: 10143,
             name: 'Monad Testnet',
             nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 },
-            rpcUrls: { default: { http: ['https://testnet-rpc.monad.xyz'] } },
-            blockExplorers: { default: { url: 'https://testnet.monadexplorer.com' } },
+            rpcUrls: {
+                default: { http: ['https://testnet-rpc.monad.xyz'] },
+            },
+            blockExplorers: {
+                default: { name: 'Monad Explorer', url: 'https://testnet.monadexplorer.com' },
+            },
             testnet: true,
         };
 
@@ -460,7 +475,9 @@
 
         const config = createConfig({
             chains: [monadTestnet],
-            transports: { [monadTestnet.id]: http() },
+            transports: {
+                [monadTestnet.id]: http(),
+            },
             connectors: [
                 walletConnect({ projectId, showQrModal: false }),
                 metaMask(),
@@ -472,15 +489,18 @@
             wagmiConfig: config,
             projectId,
             themeMode: 'dark',
-            themeVariables: { '--w3m-accent': '#9b59ff' },
+            themeVariables: {
+                '--w3m-accent': '#9b59ff',
+                '--w3m-background': '#0b0211',
+            },
             defaultChain: monadTestnet,
         });
 
         const CONTRACT_ADDRESS = "0x238efb5E1DB138E92ae39aAE9f9B6FdcfFd76437";
-        const FOOD_FEE = BigInt(4e14);
+        const FOOD_FEE = BigInt(4e14); // 0.0004 MON
 
         const CONTRACT_ABI = [
-            {
+           {
                 "inputs": [
                     {
                         "internalType": "address",
@@ -1638,105 +1658,227 @@
             }
         ];
 
-        const SUPABASE_URL = "https://wusexxzubjfrxifelgob.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1c2V4eHp1YmpmcnhpZmVsZ29iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MDQzNTQsImV4cCI6MjA3NTQ4MDM1NH0.S_LICfku-L_Y6GPOZGMT4X_swMZjJD-ZMumeq3HUR74";
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
         let publicClient, walletClient, contract, userAddress;
 
-        const processing = document.getElementById("processing");
-        const start = () => processing.style.display = "block";
-        const stop = () => processing.style.display = "none";
+        const SUPABASE_URL = "https://wusexxzubjfrxifelgob.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1c2V4eHp1YmpmcnhpZmVsZ29iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MDQzNTQsImV4cCI6MjA3NTQ4MDM1NH0.S_LICfku-L_Y6GPOZGMT4X_swMZjJD-ZMumeq3HUR74";
 
-        function toast(msg, type = 'info') {
-            const c = document.getElementById('toastContainer');
-            const t = document.createElement('div');
-            t.innerText = msg;
-            t.style.background = type === 'success' ? '#6d28d9' : type === 'error' ? '#dc2626' : type === 'warning' ? '#d97706' : '#6366f1';
-            t.style.background = `linear-gradient(90deg, ${t.style.background}, #8b5cf6)`;
-            c.appendChild(t);
-            setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateY(20px)'; setTimeout(() => t.remove(), 400); }, 3000);
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Processing
+        const processingShimmer = document.getElementById("processing");
+        function startProcessing() { processingShimmer.style.display = "block"; }
+        function stopProcessing() { processingShimmer.style.display = "none"; }
+
+        // Toast
+        function showToast(message, type = "info", duration = 3000) {
+            let container = document.getElementById("toastContainer");
+            const toast = document.createElement("div");
+            toast.innerText = message;
+            toast.style.padding = "12px 20px";
+            toast.style.borderRadius = "10px";
+            toast.style.fontSize = "14px";
+            toast.style.color = "#fff";
+            toast.style.boxShadow = "0 4px 12px rgba(0,0,0,0.25)";
+            toast.style.opacity = "0";
+            toast.style.transform = "translateY(20px)";
+            toast.style.transition = "all 0.4s ease";
+
+            switch (type) {
+                case "success": toast.style.background = "linear-gradient(90deg,#6d28d9,#9333ea)"; break;
+                case "error": toast.style.background = "linear-gradient(90deg,#ef4444,#dc2626)"; break;
+                case "warning": toast.style.background = "linear-gradient(90deg,#f59e0b,#d97706)"; break;
+                default: toast.style.background = "linear-gradient(90deg,#6366f1,#8b5cf6)";
+            }
+
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.style.opacity = "1";
+                toast.style.transform = "translateY(0)";
+            });
+
+            setTimeout(() => {
+                toast.style.opacity = "0";
+                toast.style.transform = "translateY(20px)";
+                setTimeout(() => toast.remove(), 400);
+            }, duration);
         }
 
-        modal.subscribeProvider(async (p) => {
-            if (!p) {
-                userAddress = null; contract = null;
-                document.getElementById('addr').innerText = 'Not connected';
-                document.getElementById('connectBtn').style.display = 'inline-block';
-                document.getElementById('disconnectBtn').style.display = 'none';
-                document.getElementById('network').innerText = '—';
+        // Wallet Subscription
+        modal.subscribeProvider(async (provider) => {
+            if (!provider) {
+                userAddress = null;
+                document.getElementById("addr").innerText = 'Not connected';
+                document.getElementById("network").innerText = '—';
+                document.getElementById("connectBtn").style.display = 'inline-block';
+                document.getElementById("disconnectBtn").style.display = 'none';
+                contract = null;
+                showToast('Wallet disconnected', 'warning');
                 return;
             }
-            start();
+
+            startProcessing();
             try {
-                const accounts = await p.request({ method: 'eth_accounts' });
+                const accounts = await provider.request({ method: 'eth_accounts' });
                 userAddress = accounts[0];
-                document.getElementById('addr').innerText = `${userAddress.slice(0, 6)}...${userAddress.slice(-4)}`;
-                document.getElementById('connectBtn').style.display = 'none';
-                document.getElementById('disconnectBtn').style.display = 'inline-block';
-                document.getElementById('network').innerText = 'Monad';
+                document.getElementById("addr").innerText = `${userAddress.slice(0, 6)}...${userAddress.slice(-4)}`;
+                document.getElementById("connectBtn").style.display = 'none';
+                document.getElementById("disconnectBtn").style.display = 'inline-block';
+                document.getElementById("network").innerText = 'Monad Testnet';
+                showToast('Wallet connected!', 'success');
 
-                publicClient = createPublicClient({ chain: monadTestnet, transport: custom(p) });
-                walletClient = createWalletClient({ chain: monadTestnet, transport: custom(p), account: userAddress });
-                contract = getContract({ address: CONTRACT_ADDRESS, abi: CONTRACT_ABI, client: { public: publicClient, wallet: walletClient } });
+                publicClient = createPublicClient({
+                    chain: monadTestnet,
+                    transport: custom(provider),
+                });
 
-                const chainId = await p.request({ method: 'eth_chainId' });
+                walletClient = createWalletClient({
+                    chain: monadTestnet,
+                    transport: custom(provider),
+                    account: userAddress,
+                });
+
+                contract = getContract({
+                    address: CONTRACT_ADDRESS,
+                    abi: CONTRACT_ABI,
+                    client: { public: publicClient, wallet: walletClient },
+                });
+
+                const chainId = await provider.request({ method: 'eth_chainId' });
                 if (parseInt(chainId, 16) !== monadTestnet.id) {
-                    try { await p.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: `0x${monadTestnet.id.toString(16)}` }] }); }
-                    catch { await p.request({ method: 'wallet_addEthereumChain', params: [monadTestnet] }); }
+                    try {
+                        await provider.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: `0x${monadTestnet.id.toString(16)}` }],
+                        });
+                    } catch (switchError) {
+                        if (switchError.code === 4902) {
+                            await provider.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [{
+                                    chainId: `0x${monadTestnet.id.toString(16)}`,
+                                    chainName: monadTestnet.name,
+                                    nativeCurrency: monadTestnet.nativeCurrency,
+                                    rpcUrls: monadTestnet.rpcUrls.default.http,
+                                    blockExplorerUrls: [monadTestnet.blockExplorers.default.url],
+                                }],
+                            });
+                        } else {
+                            throw switchError;
+                        }
+                    }
                 }
-                refreshSnakes();
-            } catch (e) { toast('Connect failed', 'error'); } finally { stop(); }
+
+                await refreshOwnedSnakes();
+            } catch (err) {
+                showToast('Connection failed: ' + (err.message || 'Unknown error'), 'error');
+            } finally {
+                stopProcessing();
+            }
         });
 
-        document.getElementById('connectBtn').onclick = () => { start(); modal.open(); };
-        document.getElementById('disconnectBtn').onclick = () => modal.disconnect();
+        // Connect and Disconnect
+        document.getElementById("connectBtn").addEventListener("click", () => {
+            startProcessing();
+            modal.open();
+        });
 
-        async function tx(fn, msg) {
-            if (!contract) return toast('Connect wallet', 'warning');
-            start();
+        document.getElementById("disconnectBtn").addEventListener("click", () => {
+            modal.disconnect();
+        });
+
+        // Safe Tx
+        async function safeTx(fn, successMsg = 'Transaction succeeded!') {
+            if (!contract || !userAddress) {
+                showToast('Connect wallet first', 'warning');
+                return;
+            }
+            startProcessing();
             try {
                 const { hash } = await fn();
                 await publicClient.waitForTransactionReceipt({ hash });
-                toast(msg || 'Done!', 'success');
-                setTimeout(refreshSnakes, 1000);
-            } catch (e) { toast(e.shortMessage || 'Failed', 'error'); } finally { stop(); }
+                showToast(successMsg, 'success');
+                await refreshOwnedSnakes();
+            } catch (err) {
+                showToast('Transaction failed: ' + (err.shortMessage || err.message), 'error');
+            } finally {
+                stopProcessing();
+            }
         }
 
-        document.getElementById('mintClassicBtn').onclick = () => tx(() => contract.write.mintClassic([userAddress], { value: parseEther('0.01') }), 'Minted!');
-        document.getElementById('mintFastBtn').onclick = () => tx(() => contract.write.mintFastSnake([userAddress], { value: parseEther('1') }));
-        document.getElementById('mintHeartyBtn').onclick = () => tx(() => contract.write.mintHeartySnake([userAddress], { value: parseEther('1') }));
-        document.getElementById('mintLongBtn').onclick = () => tx(() => contract.write.mintLongSnake([userAddress], { value: parseEther('1') }));
+        // Mint Buttons
+        document.getElementById("mintClassicBtn").addEventListener("click", async () => {
+            await safeTx(() => contract.write.mintClassic([userAddress], { value: parseEther("0.01") }), 'Classic minted!');
+        });
 
-        async function refreshSnakes() {
-            const sel = document.getElementById('selectOwnedSnakes');
-            sel.innerHTML = '<option>Loading...</option>';
-            if (!contract) return;
+        document.getElementById("mintFastBtn").addEventListener("click", async () => {
+            await safeTx(() => contract.write.mintFastSnake([userAddress], { value: parseEther("1.0") }), 'Fast minted!');
+        });
+
+        document.getElementById("mintHeartyBtn").addEventListener("click", async () => {
+            await safeTx(() => contract.write.mintHeartySnake([userAddress], { value: parseEther("1.0") }), 'Hearty minted!');
+        });
+
+        document.getElementById("mintLongBtn").addEventListener("click", async () => {
+            await safeTx(() => contract.write.mintLongSnake([userAddress], { value: parseEther("1.0") }), 'Long minted!');
+        });
+
+        // Deposit
+        document.getElementById("depositBtn").addEventListener("click", async () => {
+            const amount = document.getElementById("depositAmount").value || "0.05";
+            await safeTx(() => contract.write.depositToGame([], { value: parseEther(amount) }), `Deposited ${amount} MON!`);
+        });
+
+        // Refresh Owned Snakes
+        async function refreshOwnedSnakes() {
+            const sel = document.getElementById("selectOwnedSnakes");
+            sel.innerHTML = '<option value="">Loading...</option>';
+            if (!contract || !userAddress) {
+                sel.innerHTML = '<option value="">Connect wallet</option>';
+                return;
+            }
+            startProcessing();
             try {
                 const bal = Number(await contract.read.balanceOf([userAddress]));
-                sel.innerHTML = bal ? '' : '<option>No snakes</option>';
-                for (let i = 1; i <= 1000 && sel.children.length < bal; i++) {
+                sel.innerHTML = '';
+                if (bal === 0) {
+                    sel.innerHTML = '<option value="">No snakes owned</option>';
+                    return;
+                }
+                let found = 0;
+                for (let t = 0; t < 500 && found < bal; t++) {
                     try {
-                        const owner = await contract.read.ownerOf([BigInt(i)]);
-                        if (owner.toLowerCase() === userAddress.toLowerCase()) sel.appendChild(new Option(`#${i}`, i));
+                        const owner = await contract.read.ownerOf([BigInt(t)]);
+                        if (owner.toLowerCase() === userAddress.toLowerCase()) {
+                            const opt = document.createElement('option');
+                            opt.value = t.toString();
+                            opt.innerText = `#${t}`;
+                            sel.appendChild(opt);
+                            found++;
+                        }
                     } catch { }
                 }
-            } catch { sel.innerHTML = '<option>Error</option>'; }
+                if (found === 0) sel.innerHTML = '<option value="">No tokens found</option>';
+            } finally {
+                stopProcessing();
+            }
         }
 
+        // Screen Navigation
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(id)?.classList.add('active');
+            document.getElementById(id).classList.add('active');
         }
 
-        document.getElementById('buy').onclick = () => showScreen('screenBuy');
-        document.getElementById('deposit').onclick = () => showScreen('screenDeposit');
-        document.getElementById('help').onclick = () => showScreen('screenHelp');
-        document.getElementById('buyBack').onclick = () => showScreen('screenMenu');
-        document.getElementById('depositBack').onclick = () => showScreen('screenMenu');
-        document.getElementById('helpBack').onclick = () => showScreen('screenMenu');
+        document.getElementById("buy").addEventListener("click", () => showScreen('screenBuy'));
+        document.getElementById("deposit").addEventListener("click", () => showScreen('screenDeposit'));
+        document.getElementById("help").addEventListener("click", () => showScreen('screenHelp'));
+        document.getElementById("buyBack").addEventListener("click", () => showScreen('screenMenu'));
+        document.getElementById("depositBack").addEventListener("click", () => showScreen('screenMenu'));
+        document.getElementById("helpBack").addEventListener("click", () => showScreen('screenMenu'));
 
-        document.getElementById('leaderboardBtn').onclick = async () => {
+        // Leaderboard
+        document.getElementById("leaderboardBtn").addEventListener("click", async () => {
             showScreen('screenLeaderboard');
             const tbody = document.querySelector('#leaderboardTable tbody');
             tbody.innerHTML = '<tr><td colspan="3">Loading...</td></tr>';
@@ -1748,139 +1890,285 @@
                     tr.innerHTML = `<td>${i + 1}</td><td>${row.wallet.slice(0, 6)}...${row.wallet.slice(-4)}</td><td>${row.score}</td>`;
                     tbody.appendChild(tr);
                 });
-            } catch { tbody.innerHTML = '<tr><td colspan="3">Failed to load</td></tr>'; }
+            } catch {
+                tbody.innerHTML = '<tr><td colspan="3">Error loading leaderboard</td></tr>';
+            }
+            document.getElementById("leaderboardBack").addEventListener("click", () => showScreen('screenMenu'));
+        });
+
+        // Game Logic
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        const GRID_SIZE = 20;
+        let gridSize, canvasSize;
+        let gameState = {
+            snake: [{ x: 10, y: 10 }],
+            dir: { x: 1, y: 0 },
+            food: { x: 15, y: 15 },
+            score: 0,
+            hearts: 1,
+            type: 'classic',
+            speed: 150,
+            running: false,
+            prepaidMode: true,
+            tickTimer: null
         };
-        document.getElementById('leaderboardBack').onclick = () => showScreen('screenMenu');
 
-        // Game
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        let size, grid, state = { snake: [], dir: {}, food: {}, score: 0, lives: 1, type: 'classic', speed: 150, running: false };
-
-        function resize() {
-            const rect = document.getElementById('gameHolder').getBoundingClientRect();
-            size = Math.min(rect.width, rect.height * 0.8);
-            canvas.width = canvas.height = size;
-            grid = size / 20;
-            if (state.running) draw();
+        function resizeCanvas() {
+            canvasSize = Math.min(window.innerWidth - 32, window.innerHeight * 0.6);
+            canvas.width = canvas.height = canvasSize;
+            gridSize = canvasSize / GRID_SIZE;
+            if (gameState.running) draw();
         }
-        window.addEventListener('resize', resize);
+        window.addEventListener('resize', resizeCanvas);
 
-        function startGame() {
-            document.getElementById('menu').style.display = 'none';
-            document.getElementById('gameHolder').style.display = 'block';
-            document.getElementById('hud').style.display = 'flex';
+        function openGame() {
+            document.getElementById("menu").style.display = "none";
+            document.getElementById("gameHolder").style.display = "block";
+            document.getElementById("hud").style.display = "flex";
             hideModal();
-            resize();
-            reset();
-            if (/Mobi/.test(navigator.userAgent)) document.getElementById('touch').style.display = 'grid';
+            resizeCanvas();
+            resetAndStartGame();
+            if (/Mobi|Android/i.test(navigator.userAgent)) {
+                document.getElementById("touch").style.display = "grid";
+            }
         }
 
-        function reset() {
-            state = {
-                snake: [{ x: 10, y: 10 }], dir: { x: 1, y: 0 },
-                food: rand(), score: 0, lives: 1, type: 'classic', speed: 150, running: true
-            };
-            updateHUD(); draw(); tick();
+        function resetAndStartGame() {
+            gameState.snake = [{ x: 10, y: 10 }];
+            gameState.dir = { x: 1, y: 0 };
+            gameState.food = randomCell();
+            gameState.score = 0;
+            gameState.hearts = 1;
+            gameState.type = 'classic';
+            gameState.speed = 150;
+            gameState.running = true;
+            updateHUD();
+            draw();
+            scheduleTick();
         }
 
-        function rand() { return { x: Math.floor(Math.random() * 20), y: Math.floor(Math.random() * 20) }; }
+        function randomCell() { return { x: Math.floor(Math.random() * GRID_SIZE), y: Math.floor(Math.random() * GRID_SIZE) }; }
 
         function draw() {
-            ctx.fillStyle = '#05020b'; ctx.fillRect(0, 0, size, size);
-            ctx.fillStyle = '#fff';
-            ctx.beginPath(); ctx.arc((state.food.x + 0.5) * grid, (state.food.y + 0.5) * grid, grid / 3, 0, Math.PI * 2); ctx.fill();
-            state.snake.forEach((s, i) => {
-                const cx = (s.x + 0.5) * grid, cy = (s.y + 0.5) * grid;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#07020b";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = "#ffffff";
+            ctx.beginPath();
+            ctx.arc((gameState.food.x + 0.5) * gridSize, (gameState.food.y + 0.5) * gridSize, gridSize / 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            for (let i = 0; i < gameState.snake.length; i++) {
+                const s = gameState.snake[i];
+                const cx = (s.x + 0.5) * gridSize, cy = (s.y + 0.5) * gridSize;
                 if (i === 0) {
-                    ctx.fillStyle = state.type === 'classic' ? '#b388ff' : '#00ffaa';
-                    ctx.beginPath(); ctx.arc(cx, cy, grid / 2.1, 0, Math.PI * 2); ctx.fill();
-                    ctx.fillStyle = '#000';
-                    ctx.beginPath(); ctx.arc(cx - grid / 5, cy - grid / 6, grid / 10, 0, Math.PI * 2);
-                    ctx.arc(cx + grid / 5, cy - grid / 6, grid / 10, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = (gameState.type === 'classic') ? '#b388ff' : '#00ffaa';
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, gridSize / 2.1, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = "#000";
+                    ctx.beginPath();
+                    ctx.arc(cx - gridSize / 5, cy - gridSize / 6, gridSize / 10, 0, Math.PI * 2);
+                    ctx.arc(cx + gridSize / 5, cy - gridSize / 6, gridSize / 10, 0, Math.PI * 2);
+                    ctx.fill();
                 } else {
-                    const t = i / state.snake.length;
-                    ctx.fillStyle = `rgba(179,136,255,${0.6 * (1 - t) + 0.2})`;
-                    ctx.beginPath(); ctx.arc(cx, cy, (grid / 2.5) * (1 - t * 0.6), 0, Math.PI * 2); ctx.fill();
+                    const t = i / gameState.snake.length;
+                    const opacity = 0.6 * (1 - t) + 0.2;
+                    const radius = (gridSize / 2.5) * (1 - t * 0.6);
+                    ctx.fillStyle = `rgba(179,136,255,${opacity})`;
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                    ctx.fill();
                 }
-            });
+            }
         }
 
-        function tick() {
-            if (!state.running) return;
-            let head = { x: state.snake[0].x + state.dir.x, y: state.snake[0].y + state.dir.y };
-            head.x = (head.x + 20) % 20; head.y = (head.y + 20) % 20;
+        function scheduleTick() {
+            clearTimeout(gameState.tickTimer);
+            gameState.tickTimer = setTimeout(tick, gameState.speed);
+        }
 
-            if (state.snake.slice(1).some(s => s.x === head.x && s.y === head.y)) {
-                if (state.lives > 1) { state.lives--; state.snake = state.snake.slice(0, Math.max(1, state.snake.length >> 1)); }
-                else return gameOver();
-            } else state.snake.unshift(head);
+        async function tick() {
+            if (!gameState.running) return;
+            let head = { x: gameState.snake[0].x + gameState.dir.x, y: gameState.snake[0].y + gameState.dir.y };
+            head.x = (head.x + GRID_SIZE) % GRID_SIZE;
+            head.y = (head.y + GRID_SIZE) % GRID_SIZE;
 
-            if (head.x === state.food.x && head.y === state.food.y) {
-                state.score += 10;
-                state.food = rand();
-                if (contract) tx(() => contract.write.payForFood({ value: FOOD_FEE }));
-            } else state.snake.pop();
+            for (let i = 1; i < gameState.snake.length; i++) {
+                if (head.x === gameState.snake[i].x && head.y === gameState.snake[i].y) {
+                    if (gameState.hearts > 1) {
+                        gameState.hearts -= 1;
+                        gameState.snake = gameState.snake.slice(0, Math.max(1, Math.floor(gameState.snake.length / 2)));
+                        updateHUD(); draw(); return scheduleTick();
+                    } else {
+                        return onGameOver();
+                    }
+                }
+            }
 
-            updateHUD(); draw();
-            setTimeout(tick, state.speed);
+            gameState.snake.unshift(head);
+
+            if (head.x === gameState.food.x && head.y === gameState.food.y) {
+                gameState.score += 10;
+                if (gameState.type === 'hearty') {
+                    gameState.snake.push({ ...gameState.snake[gameState.snake.length - 1] });
+                    gameState.snake.push({ ...gameState.snake[gameState.snake.length - 1] });
+                    gameState.hearts = Math.max(1, gameState.hearts);
+                }
+                if (gameState.type === 'long') {
+                    while (gameState.snake.length < 6) gameState.snake.push({ ...gameState.snake[gameState.snake.length - 1] });
+                }
+                if (gameState.type === 'fast') {
+                    gameState.speed = Math.max(60, gameState.speed - 8);
+                }
+                gameState.food = randomCell();
+                updateHUD();
+
+                if (contract) {
+                    if (gameState.prepaidMode) {
+                        safeTx(() => contract.write.consumeFromBalance([FOOD_FEE]), '');
+                    } else {
+                        safeTx(() => contract.write.payForFood([], { value: FOOD_FEE }), '');
+                    }
+                }
+            } else {
+                gameState.snake.pop();
+            }
+
+            updateHUD();
+            draw();
+            scheduleTick();
         }
 
         function updateHUD() {
-            document.getElementById('score').innerText = state.score;
-            document.getElementById('lives').innerText = 'Heart'.repeat(state.lives);
-            document.getElementById('type').innerText = state.type;
+            document.getElementById("score").innerText = gameState.score;
+            document.getElementById("lives").innerText = "💜".repeat(gameState.hearts);
+            document.getElementById("type").innerText = gameState.type;
         }
 
-        function gameOver() {
-            state.running = false;
-            toast(`Game Over! Score: ${state.score}`, 'error');
-            if (contract) tx(() => contract.write.submitScore([0, BigInt(state.score)]));
-            showModal('Game Over', `Score: <strong>${state.score}</strong>`, 'Play Again', 'Menu', reset, () => {
-                document.getElementById('menu').style.display = 'flex';
-                document.getElementById('gameHolder').style.display = 'none';
-                document.getElementById('hud').style.display = 'none';
-                hideModal();
-            });
-        }
-
-        function showModal(t, b, a1, a2, f1, f2) {
-            document.getElementById('modalTitle').innerText = t;
-            document.getElementById('modalBody').innerHTML = b;
-            const btn1 = document.getElementById('action1'); btn1.innerText = a1; btn1.onclick = f1;
-            const btn2 = document.getElementById('action2'); btn2.innerText = a2; btn2.onclick = f2;
-            document.getElementById('modal').style.display = 'flex';
-        }
-        function hideModal() { document.getElementById('modal').style.display = 'none'; }
-
-        ['touchUp', 'touchDown', 'touchLeft', 'touchRight'].forEach(id => {
-            document.getElementById(id).addEventListener('touchstart', e => { e.preventDefault(); handleDir(id); });
+        window.addEventListener('keydown', (e) => {
+            if (!gameState.running) return;
+            if (e.key === 'ArrowUp' && gameState.dir.y !== 1) gameState.dir = { x: 0, y: -1 };
+            if (e.key === 'ArrowDown' && gameState.dir.y !== -1) gameState.dir = { x: 0, y: 1 };
+            if (e.key === 'ArrowLeft' && gameState.dir.x !== 1) gameState.dir = { x: -1, y: 0 };
+            if (e.key === 'ArrowRight' && gameState.dir.x !== -1) gameState.dir = { x: 1, y: 0 };
         });
-        function handleDir(id) {
-            if (!state.running) return;
-            const d = state.dir;
-            if (id === 'touchUp' && d.y !== 1) state.dir = { x: 0, y: -1 };
-            if (id === 'touchDown' && d.y !== -1) state.dir = { x: 0, y: 1 };
-            if (id === 'touchLeft' && d.x !== 1) state.dir = { x: -1, y: 0 };
-            if (id === 'touchRight' && d.x !== -1) state.dir = { x: 1, y: 0 };
+
+        document.getElementById("touchLeft").addEventListener("touchstart", (e) => { e.preventDefault(); if (gameState.dir.x !== 1) gameState.dir = { x: -1, y: 0 }; });
+        document.getElementById("touchRight").addEventListener("touchstart", (e) => { e.preventDefault(); if (gameState.dir.x !== -1) gameState.dir = { x: 1, y: 0 }; });
+        document.getElementById("touchUp").addEventListener("touchstart", (e) => { e.preventDefault(); if (gameState.dir.y !== 1) gameState.dir = { x: 0, y: -1 }; });
+        document.getElementById("touchDown").addEventListener("touchstart", (e) => { e.preventDefault(); if (gameState.dir.y !== -1) gameState.dir = { x: 0, y: 1 }; });
+
+        document.getElementById("pause").addEventListener("click", () => {
+            gameState.running = !gameState.running;
+            document.getElementById("pause").innerText = gameState.running ? 'Pause' : 'Resume';
+            if (!gameState.running) {
+                showModal("Paused", "Paused — you can resume or go back to menu", "Resume", "Back to Menu", () => {
+                    hideModal();
+                    gameState.running = true;
+                    document.getElementById("pause").innerText = 'Pause';
+                    scheduleTick();
+                }, () => {
+                    hideModal();
+                    gameState.running = false;
+                    document.getElementById("gameHolder").style.display = "none";
+                    document.getElementById("hud").style.display = "none";
+                    document.getElementById("menu").style.display = "flex";
+                    showScreen('screenMenu');
+                });
+            }
+        });
+
+        function showModal(title, bodyHtml, action1Text, action2Text, action1, action2) {
+            document.getElementById("modalTitle").innerText = title;
+            document.getElementById("modalBody").innerHTML = bodyHtml;
+            document.getElementById("action1").innerText = action1Text;
+            document.getElementById("action2").innerText = action2Text;
+            document.getElementById("action1").onclick = action1;
+            document.getElementById("action2").onclick = action2;
+            document.getElementById("modal").style.display = "flex";
         }
 
-        document.getElementById('pause').onclick = () => {
-            state.running = !state.running;
-            document.getElementById('pause').innerText = state.running ? 'Pause' : 'Resume';
-        };
+        function hideModal() { document.getElementById("modal").style.display = "none"; }
 
-        document.getElementById('newGame').onclick = async () => {
-            if (!contract) return toast('Connect wallet', 'warning');
-            start();
+        async function onGameOver() {
+            if (!gameState.running) return;
+
+            gameState.running = false;
+            clearTimeout(gameState.tickTimer);
+            document.getElementById("pause").innerText = 'Pause';
+
+            showToast(`Game Over! Final Score: ${gameState.score}`, "error", 4000);
+
+            if (userAddress) {
+                await submitScoreToSupabase(userAddress, gameState.score);
+            }
+
+            await safeTx(() => contract.write.submitScore([0, BigInt(gameState.score)]));
+
+            document.getElementById("finalScore").innerText = gameState.score;
+            showModal(
+                "Game Over!",
+                `Final Score: <strong>${gameState.score}</strong>. Play again?`,
+                "Play Again",
+                "Back to Menu",
+                () => {
+                    hideModal();
+                    resetAndStartGame();
+                },
+                () => {
+                    hideModal();
+                    document.getElementById("gameHolder").style.display = "none";
+                    document.getElementById("hud").style.display = "none";
+                    document.getElementById("menu").style.display = "flex";
+                    showScreen('screenMenu');
+                }
+            );
+        }
+
+        async function submitScoreToSupabase(wallet, score) {
+            try {
+                await fetch(`${SUPABASE_URL}/functions/v1/submit-score`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${SUPABASE_ANON_KEY}` },
+                    body: JSON.stringify({ wallet, score })
+                });
+            } catch { }
+        }
+
+        // New Game
+        document.getElementById("newGame").addEventListener("click", async () => {
+            if (!contract || !userAddress) { showToast("Connect wallet first", 'warning'); return; }
+            startProcessing();
             try {
                 const bal = await contract.read.balanceOf([userAddress]);
-                if (bal === 0n) { toast('Mint a snake first!', 'warning'); showScreen('screenBuy'); stop(); return; }
-                startGame();
-            } catch { toast('Error', 'error'); } finally { stop(); }
-        };
+                if (bal === 0n) {
+                    showToast("You must mint a Classic snake first.", 'warning');
+                    showScreen('screenBuy');
+                    return;
+                }
+                openGame();
+            } catch (e) {
+                showToast("Ownership check failed: " + e.shortMessage, 'error');
+            } finally {
+                stopProcessing();
+            }
+        });
 
-        resize();
+        // Init
+        document.addEventListener("DOMContentLoaded", () => {
+            // Auto-reconnect if possible
+            const provider = modal.getWalletProvider();
+            if (provider) {
+                provider.request({ method: 'eth_accounts' }).then(accounts => {
+                    if (accounts.length > 0) {
+                        modal.subscribeProvider(provider);
+                    }
+                });
+            }
+        });
     </script>
 </body>
 
