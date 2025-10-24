@@ -11,7 +11,7 @@
     <meta property="fc:frame:image" content="https://yourdomain.com/og.png" />
     <meta property="fc:frame:button:1" content="Play Snake" />
     <meta property="fc:frame:button:1:action" content="link" />
-    <meta property="fc:frame:button:1:target" content="https://snake-monxia.vercel.app" />
+    <meta property="fc:frame:button:1:target" content="https://yourdomain.com" />
 
     <style>
         :root {
@@ -69,6 +69,8 @@
             display: none;
         }
 
+        /* Hidden on mobile */
+
         header h1 {
             margin: 0;
             font-size: 18px;
@@ -97,11 +99,6 @@
             font-weight: 600;
             cursor: pointer;
             font-size: 14px;
-            transition: opacity 0.2s;
-        }
-
-        .btn:hover {
-            opacity: 0.9;
         }
 
         .btn.ghost {
@@ -165,7 +162,6 @@
             grid-template-rows: 1fr 1fr;
             gap: 4px;
             pointer-events: none;
-            z-index: 10;
         }
 
         .touch-zone {
@@ -221,7 +217,7 @@
             right: 0;
             height: 4px;
             display: none;
-            z-index: 1000;
+            z-index: 9999;
         }
 
         .processing .bar {
@@ -245,7 +241,7 @@
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            z-index: 1000;
+            z-index: 9999;
             display: flex;
             flex-direction: column;
             gap: 8px;
@@ -282,6 +278,7 @@
             text-align: left;
         }
 
+        /* Desktop */
         @media (min-width: 768px) {
             body {
                 padding: 28px;
@@ -316,14 +313,14 @@
         <div class="card left">
             <header>
                 <h1>🐍 Snake Monxia</h1>
-                <div class="small">Retro + Web3 — Play, mint snakes, pay-per-food or prepay</div>
+                <div class="small">Retro +web3 — Play, mint snakes, pay-per-food or prepay</div>
             </header>
 
             <div class="top-row">
                 <div>
                     <div class="small">Wallet</div>
                     <div style="display:flex; gap:6px; align-items:center; margin-top:4px; flex-wrap:wrap;">
-                        <button class="btn" id="connectBtn">Connect Wallet</button>
+                        <button class="btn" id="connectBtn">Connect</button>
                         <button class="btn ghost" id="disconnectBtn" style="display:none">Disconnect</button>
                         <div class="muted" id="addr">Not connected</div>
                     </div>
@@ -340,7 +337,7 @@
             </div>
 
             <div id="gameHolder" style="display:none">
-                <canvas id="canvas"></canvas>
+                <canvas id="canvas" width="420" height="420"></canvas>
                 <div class="touch-controls" id="touch" style="display:none">
                     <div class="touch-zone" id="touchUp"></div>
                     <div class="touch-zone" id="touchLeft"></div>
@@ -364,12 +361,12 @@
                 </div>
             </div>
 
-            <div class="modal-backdrop" id="modal">
+            <div class="modal-backdrop" id="modal" style="display:none">
                 <div class="modal">
                     <h3 id="modalTitle">Game Over</h3>
                     <div id="modalBody" class="muted">Score: <strong id="finalScore">0</strong></div>
                     <div style="margin-top:16px; display:flex; gap:8px; justify-content:flex-end;">
-                        <button class="btn" id="action1">Play Again</button>
+                        <button class="btn" id="action1">New Game</button>
                         <button class="btn ghost" id="action2">Back to Menu</button>
                     </div>
                 </div>
@@ -381,6 +378,7 @@
                 <h3>Main Menu</h3>
                 <div class="muted">Choose an action to continue.</div>
             </div>
+
             <div id="screenBuy" class="screen">
                 <h3>Buy Snakes</h3>
                 <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
@@ -390,7 +388,7 @@
                     <button class="btn" id="mintLongBtn">Mint Long — 1 MON</button>
                 </div>
                 <div style="margin-top:12px">
-                    <div class="small">Select minted snake:</div>
+                    <div class="small">Select which of your minted snakes to use:</div>
                     <select id="selectOwnedSnakes"
                         style="margin-top:8px; width:100%; padding:8px; border-radius:8px; background:transparent; color:#fff;"></select>
                     <div style="margin-top:10px">
@@ -398,6 +396,7 @@
                     </div>
                 </div>
             </div>
+
             <div id="screenDeposit" class="screen">
                 <h3>Deposit to Game</h3>
                 <div style="display:flex; gap:8px; margin-top:10px;">
@@ -409,6 +408,7 @@
                     <button class="btn ghost" id="depositBack">Back</button>
                 </div>
             </div>
+
             <div id="screenHelp" class="screen">
                 <h3>Help</h3>
                 <div class="muted" style="margin-top:10px">
@@ -418,6 +418,7 @@
                     <button class="btn ghost" id="helpBack">Back</button>
                 </div>
             </div>
+
             <div id="screenLeaderboard" class="screen">
                 <h3>Leaderboard</h3>
                 <table id="leaderboardTable">
@@ -439,36 +440,47 @@
 
     <script type="module" src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 
-    <script type="importmap">
-        {
-            "imports": {
-                "ethers": "https://cdn.jsdelivr.net/npm/ethers@6.13.2/+esm",
-                "@web3modal/ethers": "https://cdn.jsdelivr.net/npm/@web3modal/ethers@3.6.1/+esm"
-            }
-        }
-    </script>
-
     <script type="module">
-        import { ethers } from 'ethers';
-        import { createWeb3Modal, defaultConfig } from '@web3modal/ethers';
+        // Imports with esm.sh to fix CORS on HTTPS
+        import { createWeb3Modal } from 'https://esm.sh/@web3modal/wagmi@5.1.12?bundle';
+        import { walletConnect, metaMask, coinbaseWallet } from 'https://esm.sh/@wagmi/connectors@5.1.12?bundle';
+        import { createConfig, http } from 'https://esm.sh/wagmi@2.12.16?bundle';
+        import { createPublicClient, createWalletClient, custom, getContract, parseEther } from 'https://esm.sh/viem@2.21.1?bundle';
 
-        // --- Constants ---
         const monadTestnet = {
-            chainId: 10143,
+            id: 10143,
             name: 'Monad Testnet',
-            currency: 'MON',
-            explorerUrl: 'https://testnet.monadexplorer.com',
-            rpcUrl: 'https://testnet-rpc.monad.xyz'
+            nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 },
+            rpcUrls: { default: { http: ['https://testnet-rpc.monad.xyz'] } },
+            blockExplorers: { default: { url: 'https://testnet.monadexplorer.com' } },
+            testnet: true,
         };
 
         const projectId = 'd0a0230a461b71859ecd0ffe6433a89d';
-        const CONTRACT_ADDRESS = '0x238efb5E1DB138E92ae39aAE9f9B6FdcfFd76437';
-        const FOOD_FEE = ethers.parseEther('0.0004');
-        const SUPABASE_URL = 'https://wusexxzubjfrxifelgob.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1c2V4eHp1YmpmcnhpZmVsZ29iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MDQzNTQsImV4cCI6MjA3NTQ4MDM1NH0.S_LICfku-L_Y6GPOZGMT4X_swMZjJD-ZMumeq3HUR74';
+
+        const config = createConfig({
+            chains: [monadTestnet],
+            transports: { [monadTestnet.id]: http() },
+            connectors: [
+                walletConnect({ projectId, showQrModal: false }),
+                metaMask(),
+                coinbaseWallet({ appName: 'Snake Monxia' }),
+            ],
+        });
+
+        const modal = createWeb3Modal({
+            wagmiConfig: config,
+            projectId,
+            themeMode: 'dark',
+            themeVariables: { '--w3m-accent': '#9b59ff' },
+            defaultChain: monadTestnet,
+        });
+
+        const CONTRACT_ADDRESS = "0x238efb5E1DB138E92ae39aAE9f9B6FdcfFd76437";
+        const FOOD_FEE = 4e14n;
 
         const CONTRACT_ABI = [
-           {
+            {
                 "inputs": [
                     {
                         "internalType": "address",
@@ -1626,75 +1638,56 @@
             }
         ];
 
-        // --- Wallet Setup ---
-        const metadata = {
-            name: 'Snake Monxia',
-            description: 'Play-to-mint snake game on Monad Testnet',
-            url: 'https://snake-monxia.vercel.app',
-            icons: ['https://yourdomain.com/icon.png']
-        };
+        let publicClient, walletClient, contract, userAddress;
 
-        const modal = createWeb3Modal({
-            ethersConfig: defaultConfig({ metadata }),
-            chains: [monadTestnet],
-            projectId,
-            themeMode: 'dark',
-            themeVariables: {
-                '--w3m-accent': '#9b59ff',
-                '--w3m-background': '#0b0211'
-            },
-            defaultChain: monadTestnet
-        });
-
-        let provider, signer, contract, userAddress;
+        const SUPABASE_URL = "https://wusexxzubjfrxifelgob.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1c2V4eHp1YmpmcnhpZmVsZ29iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MDQzNTQsImV4cCI6MjA3NTQ4MDM1NH0.S_LICfku-L_Y6GPOZGMT4X_swMZjJD-ZMumeq3HUR74";
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // --- UI Utilities ---
-        const processing = document.getElementById('processing');
-        function startProcessing() { processing.style.display = 'block'; }
-        function stopProcessing() { processing.style.display = 'none'; }
+        const processing = document.getElementById("processing");
+        function startProcessing() { processing.style.display = "block"; }
+        function stopProcessing() { processing.style.display = "none"; }
 
-        function showToast(message, type = 'info', duration = 3000) {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
+        function showToast(message, type = "info", duration = 3000) {
+            let container = document.getElementById("toastContainer");
+            const toast = document.createElement("div");
             toast.innerText = message;
-            toast.style.padding = '12px 20px';
-            toast.style.borderRadius = '10px';
-            toast.style.fontSize = '14px';
-            toast.style.color = '#fff';
-            toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.25)';
-            toast.style.opacity = '0';
-            toast.style.transform = 'translateY(20px)';
-            toast.style.transition = 'all 0.4s ease';
+            toast.style.padding = "12px 20px";
+            toast.style.borderRadius = "10px";
+            toast.style.fontSize = "14px";
+            toast.style.color = "#fff";
+            toast.style.boxShadow = "0 4px 12px rgba(0,0,0,0.25)";
+            toast.style.opacity = "0";
+            toast.style.transform = "translateY(20px)";
+            toast.style.transition = "all 0.4s ease";
 
             switch (type) {
-                case 'success': toast.style.background = 'linear-gradient(90deg,#6d28d9,#9333ea)'; break;
-                case 'error': toast.style.background = 'linear-gradient(90deg,#ef4444,#dc2626)'; break;
-                case 'warning': toast.style.background = 'linear-gradient(90deg,#f59e0b,#d97706)'; break;
-                default: toast.style.background = 'linear-gradient(90deg,#6366f1,#8b5cf6)';
+                case "success": toast.style.background = "linear-gradient(90deg,#6d28d9,#9333ea)"; break;
+                case "error": toast.style.background = "linear-gradient(90deg,#ef4444,#dc2626)"; break;
+                case "warning": toast.style.background = "linear-gradient(90deg,#f59e0b,#d97706)"; break;
+                default: toast.style.background = "linear-gradient(90deg,#6366f1,#8b5cf6)";
             }
 
             container.appendChild(toast);
             requestAnimationFrame(() => {
-                toast.style.opacity = '1';
-                toast.style.transform = 'translateY(0)';
+                toast.style.opacity = "1";
+                toast.style.transform = "translateY(0)";
             });
 
             setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateY(20px)';
+                toast.style.opacity = "0";
+                toast.style.transform = "translateY(20px)";
                 setTimeout(() => toast.remove(), 400);
             }, duration);
         }
 
-        // --- Wallet Connection ---
-        modal.subscribeProvider(async (newProvider) => {
-            if (!newProvider) {
+        modal.subscribeProvider(async (provider) => {
+            if (!provider) {
                 userAddress = null;
-                document.getElementById('addr').innerText = 'Not connected';
-                document.getElementById('network').innerText = '—';
-                document.getElementById('connectBtn').style.display = 'inline-block';
-                document.getElementById('disconnectBtn').style.display = 'none';
+                document.getElementById("addr").innerText = 'Not connected';
+                document.getElementById("network").innerText = '—';
+                document.getElementById("connectBtn").style.display = 'inline-block';
+                document.getElementById("disconnectBtn").style.display = 'none';
                 contract = null;
                 showToast('Wallet disconnected', 'warning');
                 return;
@@ -1702,34 +1695,48 @@
 
             startProcessing();
             try {
-                provider = new ethers.BrowserProvider(newProvider);
-                signer = await provider.getSigner();
-                userAddress = await signer.getAddress();
-                document.getElementById('addr').innerText = `${userAddress.slice(0, 6)}...${userAddress.slice(-4)}`;
-                document.getElementById('connectBtn').style.display = 'none';
-                document.getElementById('disconnectBtn').style.display = 'inline-block';
-                document.getElementById('network').innerText = 'Monad Testnet';
+                const accounts = await provider.request({ method: 'eth_accounts' });
+                userAddress = accounts[0];
+                document.getElementById("addr").innerText = `${userAddress.slice(0, 6)}...${userAddress.slice(-4)}`;
+                document.getElementById("connectBtn").style.display = 'none';
+                document.getElementById("disconnectBtn").style.display = 'inline-block';
+                document.getElementById("network").innerText = 'Monad Testnet';
                 showToast('Wallet connected!', 'success');
 
-                contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+                publicClient = createPublicClient({
+                    chain: monadTestnet,
+                    transport: custom(provider),
+                });
 
-                const chainId = Number((await provider.getNetwork()).chainId);
-                if (chainId !== monadTestnet.chainId) {
+                walletClient = createWalletClient({
+                    chain: monadTestnet,
+                    transport: custom(provider),
+                    account: userAddress,
+                });
+
+                contract = getContract({
+                    address: CONTRACT_ADDRESS,
+                    abi: CONTRACT_ABI,
+                    client: { public: publicClient, wallet: walletClient },
+                });
+
+                const chainId = await provider.request({ method: 'eth_chainId' });
+                if (parseInt(chainId, 16) !== monadTestnet.id) {
                     try {
-                        await newProvider.request({
+                        await provider.request({
                             method: 'wallet_switchEthereumChain',
-                            params: [{ chainId: `0x${monadTestnet.chainId.toString(16)}` }],
+                            params: [{ chainId: `0x${monadTestnet.id.toString(16)}` }],
                         });
                     } catch (switchError) {
                         if (switchError.code === 4902) {
-                            await newProvider.request({
+                            await provider.request({
                                 method: 'wallet_addEthereumChain',
                                 params: [{
-                                    chainId: `0x${monadTestnet.chainId.toString(16)}`,
+                                    chainId: `0x${monadTestnet.id.toString(16)}`,
                                     chainName: monadTestnet.name,
-                                    nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 },
-                                    rpcUrls: [monadTestnet.rpcUrl],
-                                    blockExplorerUrls: [monadTestnet.explorerUrl],
+                                    nativeCurrency: monadTestnet.nativeCurrency,
+                                    rpcUrls: monadTestnet.rpcUrls.default.http,
+                                    blockExplorerUrls: [monadTestnet.blockExplorers.default.url],
                                 }],
                             });
                         } else {
@@ -1740,63 +1747,66 @@
 
                 await refreshOwnedSnakes();
             } catch (err) {
-                showToast(`Connection failed: ${err.message || 'Unknown error'}`, 'error');
+                showToast('Connection failed: ' + (err.message || 'Unknown error'), 'error');
             } finally {
                 stopProcessing();
             }
         });
 
-        document.getElementById('connectBtn').addEventListener('click', () => {
+        document.getElementById("connectBtn").addEventListener("click", () => {
             startProcessing();
             modal.open();
         });
 
-        document.getElementById('disconnectBtn').addEventListener('click', () => {
+        document.getElementById("disconnectBtn").addEventListener("click", () => {
             modal.disconnect();
         });
 
-        // --- Contract Interactions ---
+        // Safe Tx
         async function safeTx(fn, successMsg = 'Transaction succeeded!') {
             if (!contract || !userAddress) {
-                showToast('Please connect wallet first', 'warning');
+                showToast('Connect wallet first', 'warning');
                 return;
             }
             startProcessing();
             try {
-                const tx = await fn();
-                await tx.wait();
+                const { hash } = await fn();
+                await publicClient.waitForTransactionReceipt({ hash });
                 showToast(successMsg, 'success');
                 await refreshOwnedSnakes();
             } catch (err) {
-                showToast(`Transaction failed: ${err.message || 'Unknown error'}`, 'error');
+                showToast('Transaction failed: ' + (err.shortMessage || err.message), 'error');
             } finally {
                 stopProcessing();
             }
         }
 
-        document.getElementById('mintClassicBtn').addEventListener('click', async () => {
-            await safeTx(() => contract.mintClassic(userAddress, { value: ethers.parseEther('0.01') }), 'Classic snake minted!');
+        // Mint Buttons
+        document.getElementById("mintClassicBtn").addEventListener("click", async () => {
+            await safeTx(() => contract.write.mintClassic([userAddress], { value: parseEther("0.01") }), 'Classic minted!');
         });
 
-        document.getElementById('mintFastBtn').addEventListener('click', async () => {
-            await safeTx(() => contract.mintFastSnake(userAddress, { value: ethers.parseEther('1.0') }), 'Fast snake minted!');
+        document.getElementById("mintFastBtn").addEventListener("click", async () => {
+            await safeTx(() => contract.write.mintFastSnake([userAddress], { value: parseEther("1.0") }), 'Fast minted!');
         });
 
-        document.getElementById('mintHeartyBtn').addEventListener('click', async () => {
-            await safeTx(() => contract.mintHeartySnake(userAddress, { value: ethers.parseEther('1.0') }), 'Hearty snake minted!');
+        document.getElementById("mintHeartyBtn").addEventListener("click", async () => {
+            await safeTx(() => contract.write.mintHeartySnake([userAddress], { value: parseEther("1.0") }), 'Hearty minted!');
         });
 
-        document.getElementById('mintLongBtn').addEventListener('click', async () => {
-            await safeTx(() => contract.mintLongSnake(userAddress, { value: ethers.parseEther('1.0') }), 'Long snake minted!');
+        document.getElementById("mintLongBtn").addEventListener("click", async () => {
+            await safeTx(() => contract.write.mintLongSnake([userAddress], { value: parseEther("1.0") }), 'Long minted!');
         });
 
-        document.getElementById('depositBtn').addEventListener('click', async () => {
-            const amount = document.getElementById('depositAmount').value || '0.05';
-            await safeTx(() => contract.depositToGame({ value: ethers.parseEther(amount) }), `Deposited ${amount} MON!`);
+        // Deposit
+        document.getElementById("depositBtn").addEventListener("click", async () => {
+            const amount = document.getElementById("depositAmount").value || "0.05";
+            await safeTx(() => contract.write.depositToGame([], { value: parseEther(amount) }), `Deposited ${amount} MON!`;
         });
 
+        // Refresh Owned Snakes
         async function refreshOwnedSnakes() {
-            const sel = document.getElementById('selectOwnedSnakes');
+            const sel = document.getElementById("selectOwnedSnakes");
             sel.innerHTML = '<option value="">Loading...</option>';
             if (!contract || !userAddress) {
                 sel.innerHTML = '<option value="">Connect wallet</option>';
@@ -1804,16 +1814,16 @@
             }
             startProcessing();
             try {
-                const balance = Number(await contract.balanceOf(userAddress));
+                const bal = Number(await contract.read.balanceOf([userAddress]));
                 sel.innerHTML = '';
-                if (balance === 0) {
+                if (bal === 0) {
                     sel.innerHTML = '<option value="">No snakes owned</option>';
                     return;
                 }
                 let found = 0;
-                for (let t = 0; t < 500 && found < balance; t++) {
+                for (let t = 0; t < 500 && found < bal; t++) {
                     try {
-                        const owner = await contract.ownerOf(t);
+                        const owner = await contract.read.ownerOf([BigInt(t)]);
                         if (owner.toLowerCase() === userAddress.toLowerCase()) {
                             const opt = document.createElement('option');
                             opt.value = t.toString();
@@ -1829,20 +1839,21 @@
             }
         }
 
-        // --- Screen Navigation ---
+        // Screen Navigation
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
         }
 
-        document.getElementById('buy').addEventListener('click', () => showScreen('screenBuy'));
-        document.getElementById('deposit').addEventListener('click', () => showScreen('screenDeposit'));
-        document.getElementById('help').addEventListener('click', () => showScreen('screenHelp'));
-        document.getElementById('buyBack').addEventListener('click', () => showScreen('screenMenu'));
-        document.getElementById('depositBack').addEventListener('click', () => showScreen('screenMenu'));
-        document.getElementById('helpBack').addEventListener('click', () => showScreen('screenMenu'));
+        document.getElementById("buy").addEventListener("click", () => showScreen('screenBuy'));
+        document.getElementById("deposit").addEventListener("click", () => showScreen('screenDeposit'));
+        document.getElementById("help").addEventListener("click", () => showScreen('screenHelp'));
+        document.getElementById("buyBack").addEventListener("click", () => showScreen('screenMenu'));
+        document.getElementById("depositBack").addEventListener("click", () => showScreen('screenMenu'));
+        document.getElementById("helpBack").addEventListener("click", () => showScreen('screenMenu'));
 
-        document.getElementById('leaderboardBtn').addEventListener('click', async () => {
+        // Leaderboard
+        document.getElementById("leaderboardBtn").addEventListener("click", async () => {
             showScreen('screenLeaderboard');
             const tbody = document.querySelector('#leaderboardTable tbody');
             tbody.innerHTML = '<tr><td colspan="3">Loading...</td></tr>';
@@ -1857,15 +1868,14 @@
             } catch {
                 tbody.innerHTML = '<tr><td colspan="3">Error loading leaderboard</td></tr>';
             }
+            document.getElementById("leaderboardBack").addEventListener("click", () => showScreen('screenMenu'));
         });
 
-        document.getElementById('leaderboardBack').addEventListener('click', () => showScreen('screenMenu'));
-
-        // --- Game Logic ---
+        // Game
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         const GRID = 20;
-        let gridSize;
+        let gridSize = canvas.width / GRID;
         let gameState = {
             snake: [{ x: 10, y: 10 }],
             dir: { x: 1, y: 0 },
@@ -1886,12 +1896,7 @@
             gridSize = canvas.width / GRID;
             if (gameState.running) draw();
         }
-
-        let resizeTimeout;
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(resizeCanvas, 100);
-        });
+        window.addEventListener('resize', resizeCanvas);
 
         function openGame() {
             document.getElementById('menu').style.display = 'none';
@@ -1919,9 +1924,7 @@
             scheduleTick();
         }
 
-        function randomCell() {
-            return { x: Math.floor(Math.random() * GRID), y: Math.floor(Math.random() * GRID) };
-        }
+        function randomCell() { return { x: Math.floor(Math.random() * GRID), y: Math.floor(Math.random() * GRID) }; }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -2003,9 +2006,9 @@
 
                 if (contract) {
                     if (gameState.prepaidMode) {
-                        await safeTx(() => contract.consumeFromBalance(FOOD_FEE), '');
+                        safeTx(() => contract.write.consumeFromBalance([FOOD_FEE]), '');
                     } else {
-                        await safeTx(() => contract.payForFood({ value: FOOD_FEE }), '');
+                        safeTx(() => contract.write.payForFood([], { value: FOOD_FEE }), '');
                     }
                 }
             } else {
@@ -2052,7 +2055,7 @@
             gameState.running = !gameState.running;
             document.getElementById('pause').innerText = gameState.running ? 'Pause' : 'Resume';
             if (!gameState.running) {
-                showModal('Paused', 'Game paused. Resume or return to menu?', 'Resume', 'Back to Menu', () => {
+                showModal('Paused', 'Paused — you can resume or go back to menu', 'Resume', 'Back to Menu', () => {
                     hideModal();
                     gameState.running = true;
                     document.getElementById('pause').innerText = 'Pause';
@@ -2069,91 +2072,84 @@
         });
 
         function showModal(title, bodyHtml, action1Text, action2Text, action1, action2) {
-            document.getElementById('modalTitle').innerText = title;
-            document.getElementById('modalBody').innerHTML = bodyHtml;
-            document.getElementById('action1').innerText = action1Text;
-            document.getElementById('action2').innerText = action2Text;
-            document.getElementById('action1').onclick = action1;
-            document.getElementById('action2').onclick = action2;
-            document.getElementById('modal').style.display = 'flex';
+            document.getElementById("modalTitle").innerText = title;
+            document.getElementById("modalBody").innerHTML = bodyHtml;
+            document.getElementById("action1").innerText = action1Text;
+            document.getElementById("action2").innerText = action2Text;
+            document.getElementById("action1").onclick = action1;
+            document.getElementById("action2").onclick = action2;
+            document.getElementById("modal").style.display = "flex";
         }
 
-        function hideModal() {
-            document.getElementById('modal').style.display = 'none';
-        }
+        function hideModal() { document.getElementById("modal").style.display = "none"; }
 
         async function onGameOver() {
             if (!gameState.running) return;
 
             gameState.running = false;
             clearTimeout(gameState.tickTimer);
-            document.getElementById('pause').innerText = 'Pause';
-            showToast(`Game Over! Final Score: ${gameState.score}`, 'error', 4000);
+            document.getElementById("pause").innerText = 'Pause';
+
+            showToast(`Game Over! Final Score: ${gameState.score}`, "error", 4000);
 
             if (userAddress) {
                 try {
                     await fetch(`${SUPABASE_URL}/functions/v1/submit-score`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` },
+                        method: "POST",
+                        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${SUPABASE_ANON_KEY}` },
                         body: JSON.stringify({ wallet: userAddress, score: gameState.score })
                     });
-                } catch (err) {
-                    showToast('Failed to submit score to leaderboard', 'error');
-                }
+                } catch { }
             }
 
-            if (contract) {
-                await safeTx(() => contract.submitScore(0, gameState.score));
-            }
+            if (contract) await safeTx(() => contract.write.submitScore([0, BigInt(gameState.score)]));
 
-            document.getElementById('finalScore').innerText = gameState.score;
+            document.getElementById("finalScore").innerText = gameState.score;
             showModal(
-                'Game Over!',
-                `Final Score: <strong>${gameState.score}</strong>. Play again?`,
-                'Play Again',
-                'Back to Menu',
+                "Game Over!",
+                `Final Score: <strong>${gameState.score}</strong>. Tap Play Again to start a new game.`,
+                "Play Again",
+                "Back to Menu",
                 () => {
                     hideModal();
                     resetAndStartGame();
                 },
                 () => {
                     hideModal();
-                    document.getElementById('gameHolder').style.display = 'none';
-                    document.getElementById('hud').style.display = 'none';
-                    document.getElementById('menu').style.display = 'flex';
+                    document.getElementById("gameHolder").style.display = "none";
+                    document.getElementById("hud").style.display = "none";
+                    document.getElementById("menu").style.display = "flex";
                     showScreen('screenMenu');
                 }
             );
         }
 
-        document.getElementById('newGame').addEventListener('click', async () => {
-            if (!contract || !userAddress) {
-                showToast('Please connect wallet first', 'warning');
-                return;
-            }
+        document.getElementById("newGame").addEventListener("click", async () => {
+            if (!contract || !userAddress) { showToast("Connect wallet first", 'warning'); return; }
             startProcessing();
             try {
-                const balance = await contract.balanceOf(userAddress);
-                if (balance == 0) {
-                    showToast('You must mint a Classic snake first', 'warning');
+                const bal = await contract.read.balanceOf([userAddress]);
+                if (bal === 0n) {
+                    showToast("You must mint a Classic snake first.", 'warning');
                     showScreen('screenBuy');
                     return;
                 }
                 openGame();
-            } catch (err) {
-                showToast(`Failed to check ownership: ${err.message || 'Unknown error'}`, 'error');
+            } catch (e) {
+                showToast("Ownership check failed: " + e.shortMessage, 'error');
             } finally {
                 stopProcessing();
             }
         });
 
-        // --- Initialization ---
-        document.addEventListener('DOMContentLoaded', async () => {
-            resizeCanvas();
-            const connectedWallets = await modal.getConnectedWalletInfo();
-            if (connectedWallets && connectedWallets.length > 0) {
-                const provider = new ethers.BrowserProvider(window.ethereum);
-                modal.subscribeProvider(provider);
+        document.addEventListener("DOMContentLoaded", () => {
+            const provider = modal.getWalletProvider();
+            if (provider) {
+                provider.request({ method: 'eth_accounts' }).then(accounts => {
+                    if (accounts.length > 0) {
+                        modal.subscribeProvider(provider);
+                    }
+                });
             }
         });
     </script>
