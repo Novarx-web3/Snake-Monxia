@@ -212,7 +212,7 @@
     <script type="module">
         // Imports with esm.sh to fix CORS on HTTPS
         import { createWeb3Modal } from 'https://esm.sh/@web3modal/wagmi@5.1.12?bundle';
-        import { walletConnect, metaMask, coinbaseWallet } from 'https://esm.sh/@wagmi/connectors@5.1.12?bundle';
+        import { walletConnect, metaMask, coinbaseWallet, injected } from 'https://esm.sh/@wagmi/connectors@5.1.12?bundle';
         import { createConfig, http } from 'https://esm.sh/wagmi@2.12.16?bundle';
         import { createPublicClient, createWalletClient, custom, getContract, parseEther } from 'https://esm.sh/viem@2.21.1?bundle';
 
@@ -234,6 +234,13 @@
                 walletConnect({ projectId, showQrModal: true }),
                 metaMask(),
                 coinbaseWallet({ appName: 'Snake Monxia' }),
+                injected({
+                    target: () => ({
+                        id: 'okxwallet',
+                        name: 'OKX Wallet',
+                        provider: window.okxwallet,
+                    })
+                }),
             ],
         });
 
