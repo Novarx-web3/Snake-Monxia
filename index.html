@@ -1,160 +1,254 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>Snake Monxia</title>
-  <!-- Farcaster Frame -->
-  <meta property="fc:frame" content="vNext">
-  <meta property="fc:frame:image" content="https://snake-monxia.vercel.app/og.png">
-  <meta property="fc:frame:button:1" content="Play Snake">
-  <meta property="fc:frame:button:1:action" content="link">
-  <meta property="fc:frame:button:1:target" content="https://snake-monxia.vercel.app">
-  
-  <style>
-    :root {
-      --bg: #0b0211;
-      --card: #12051a;
-      --accent: #9b59ff;
-      --muted: #9e88b8;
-      --glass: rgba(255, 255, 255, 0.03);
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; font-family: system-ui, sans-serif; background: var(--bg); color: #eee; overflow: hidden; }
-    body { display: flex; flex-direction: column; padding: 12px; gap: 12px; }
-    @media (min-width: 768px) { body { padding: 28px; } }
-    .wrap { display: flex; flex-direction: column; height: 100%; gap: 12px; }
-    @media (min-width: 768px) { .wrap { flex-direction: row; } }
-    .card { background: var(--card); border-radius: 14px; padding: 16px; border: 1px solid rgba(155,89,255,0.1); }
-    .left { flex: 1; display: flex; flex-direction: column; gap: 12px; }
-    @media (min-width: 768px) { .left { flex: 0 0 480px; } }
-    .right { display: none; }
-    @media (min-width: 768px) { .right { display: block; flex: 1; } }
-    header h1 { margin: 0; font-size: 18px; color: var(--accent); }
-    .small { font-size: 11px; color: var(--muted); }
-    .top-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .btn { background: linear-gradient(90deg, var(--accent), #6f4bff); border: none; color: #fff; padding: 10px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; transition: opacity 0.2s; }
-    .btn:hover { opacity: 0.9; }
-    .btn.ghost { background: transparent; border: 1px solid rgba(255,255,255,0.1); color: var(--muted); }
-    .menu { display: flex; flex-direction: column; gap: 8px; }
-    #gameHolder { position: relative; flex: 1; }
-    canvas { width: 100%; height: 100%; image-rendering: pixelated; border-radius: 10px; background: #05020b; border: 1px solid rgba(255,255,255,0.05); }
-    #wallet-section { display: flex; gap: 6px; align-items: center; margin-top: 4px; flex-wrap: wrap; }
-    #addr { font-weight: bold; }
-    #network { font-size: 12px; color: var(--muted); }
-    #connectBtn { display: inline-block; }
-    #disconnectBtn { display: none; }
-    .screen { display: none; }
-    .screen.active { display: block; }
-    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 999; backdrop-filter: blur(8px); }
-    .modal { background: var(--card); padding: 20px; border-radius: 14px; width: 90%; max-width: 400px; border: 1px solid rgba(155,89,255,0.1); }
-    .processing { position: fixed; top: 0; left: 0; right: 0; height: 4px; display: none; z-index: 1000; }
-    .processing .bar { height: 100%; background: linear-gradient(90deg, #2b0a3f, var(--accent), #4b2bff); animation: shimmer 1.2s infinite; }
-    @keyframes shimmer { from { background-position: 0 0; } to { background-position: 200% 0; } }
-  </style>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>Snake Monxia</title>
+
+    <!-- Farcaster Frame Metadata (Update with your Vercel URL) -->
+    <meta property="fc:frame" content="vNext" />
+    <meta property="fc:frame:image" content="https://snake-monxia.vercel.app/og.png" />
+    <meta property="fc:frame:button:1" content="Play Snake" />
+    <meta property="fc:frame:button:1:action" content="link" />
+    <meta property="fc:frame:button:1:target" content="https://snake-monxia.vercel.app" />
+
+    <style>
+        :root {
+            --bg: #0b0211;
+            --card: #12051a;
+            --accent: #9b59ff;
+            --muted: #9e88b8;
+            --glass: rgba(255, 255, 255, 0.03);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; font-family: system-ui, sans-serif; background: var(--bg); color: #eee; overflow: hidden; }
+        body { display: flex; flex-direction: column; padding: 12px; gap: 12px; }
+
+        .wrap { display: flex; flex-direction: column; height: 100%; gap: 12px; }
+        .card { background: var(--card); border-radius: 14px; padding: 16px; border: 1px solid rgba(155,89,255,0.1); }
+        .left { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+        .right { display: none; } /* Hidden on mobile */
+
+        header h1 { margin: 0; font-size: 18px; color: var(--accent); }
+        .small { font-size: 11px; color: var(--muted); }
+
+        .top-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .btn {
+            background: linear-gradient(90deg, var(--accent), #6f4bff);
+            border: none; color: #fff; padding: 10px 14px; border-radius: 8px;
+            font-weight: 600; cursor: pointer; font-size: 14px; transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn.ghost { background: transparent; border: 1px solid rgba(255,255,255,0.1); color: var(--muted); }
+
+        .menu { display: flex; flex-direction: column; gap: 8px; }
+        .hud { display: flex; gap: 8px; flex-wrap: wrap; }
+        .hud .item { background: var(--glass); padding: 6px 10px; border-radius: 8px; text-align: center; min-width: 60px; }
+        .item .label { font-size: 10px; color: var(--muted); }
+        .item .value { font-weight: 700; font-size: 14px; }
+
+        #gameHolder { position: relative; flex: 1; }
+        canvas { width: 100%; height: 100%; image-rendering: pixelated; border-radius: 10px; background: #05020b; border: 1px solid rgba(255,255,255,0.05); }
+
+        .touch-controls {
+            position: absolute; left: 0; right: 0; bottom: 0; height: 120px;
+            display: grid; grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr;
+            gap: 4px; pointer-events: none; z-index: 10;
+        }
+        .touch-zone { pointer-events: auto; background: rgba(255,255,255,0.05); border-radius: 8px; }
+
+        #touchUp { grid-column: 2; grid-row: 1; }
+        #touchLeft { grid-column: 1; grid-row: 2; }
+        #touchDown { grid-column: 2; grid-row: 2; }
+        #touchRight { grid-column: 3; grid-row: 2; }
+
+        .modal-backdrop {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none;
+            align-items: center; justify-content: center; z-index: 999; backdrop-filter: blur(8px);
+        }
+        .modal { background: var(--card); padding: 20px; border-radius: 14px; width: 90%; max-width: 400px; border: 1px solid rgba(155,89,255,0.1); }
+
+        .processing { position: fixed; top: 0; left: 0; right: 0; height: 4px; display: none; z-index: 1000; }
+        .processing .bar { height: 100%; background: linear-gradient(90deg, #2b0a3f, var(--accent), #4b2bff); animation: shimmer 1.2s infinite; }
+        @keyframes shimmer { from { background-position: 0 0; } to { background-position: 200% 0; } }
+
+        #toastContainer { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+        #toastContainer div { padding: 12px 20px; border-radius: 10px; font-size: 14px; animation: slide 0.4s ease; }
+        @keyframes slide { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left; }
+
+        /* Desktop */
+        @media (min-width: 768px) {
+            body { padding: 28px; }
+            .wrap { flex-direction: row; }
+            .left { flex: 0 0 480px; }
+            .right { display: block; flex: 1; }
+            .touch-controls { display: none !important; }
+        }
+    </style>
 </head>
+
 <body>
-  <div class="processing" id="processing"><div class="bar"></div></div>
-  
-  <div class="wrap">
-    <div class="card left">
-      <header>
-        <h1>Snake Monxia</h1>
-        <div class="small">Retro web3 • Play, mint snakes, pay-per-food or prepay</div>
-      </header>
-      
-      <div class="top-row">
-        <div>
-          <div class="small">Wallet</div>
-          <div id="wallet-section">
-            <button id="connectBtn" class="btn">Connect</button>
-            <button id="disconnectBtn" class="btn ghost">Disconnect</button>
-            <div id="addr" class="small">Not connected</div>
-            <div id="network" class="small"></div>
-          </div>
+    <div class="processing" id="processing"><div class="bar"></div></div>
+
+    <div class="wrap">
+        <div class="card left">
+            <header>
+                <h1>🐍 Snake Monxia</h1>
+                <div class="small">Retro +web3 — Play, mint snakes, pay-per-food or prepay</div>
+            </header>
+
+            <div class="top-row">
+                <div>
+                    <div class="small">Wallet</div>
+                    <div style="display:flex; gap:6px; align-items:center; margin-top:4px; flex-wrap:wrap;">
+                        <button class="btn" id="connectBtn">Connect</button>
+                        <button class="btn ghost" id="disconnectBtn" style="display:none">Disconnect</button>
+                        <div class="muted" id="addr">Not connected</div>
+                    </div>
+                </div>
+                <div class="muted small" id="network">—</div>
+            </div>
+
+            <div id="menu" class="menu">
+                <button class="btn" id="newGame">New Game</button>
+                <button class="btn ghost" id="buy">Buy Snakes</button>
+                <button class="btn ghost" id="deposit">Deposit</button>
+                <button class="btn ghost" id="leaderboardBtn">Leaderboard</button>
+                <button class="btn ghost" id="help">Help</button>
+            </div>
+
+            <div id="gameHolder" style="display:none">
+                <canvas id="canvas" width="420" height="420"></canvas>
+                <div class="touch-controls" id="touch" style="display:none">
+                    <div class="touch-zone" id="touchUp"></div>
+                    <div class="touch-zone" id="touchLeft"></div>
+                    <div class="touch-zone" id="touchDown"></div>
+                    <div class="touch-zone" id="touchRight"></div>
+                </div>
+                <div class="hud" id="hud" style="display:none">
+                    <div class="item"><div class="label">Score</div><div class="value" id="score">0</div></div>
+                    <div class="item"><div class="label">Hearts</div><div class="value" id="lives">💜</div></div>
+                    <div class="item"><div class="label">Type</div><div class="value" id="type">classic</div></div>
+                    <button class="btn ghost" id="pause" style="margin-left:auto">Pause</button>
+                </div>
+            </div>
+
+            <div class="modal-backdrop" id="modal" style="display:none">
+                <div class="modal">
+                    <h3 id="modalTitle">Game Over</h3>
+                    <div id="modalBody" class="muted">Score: <strong id="finalScore">0</strong></div>
+                    <div style="margin-top:16px; display:flex; gap:8px; justify-content:flex-end;">
+                        <button class="btn" id="action1">New Game</button>
+                        <button class="btn ghost" id="action2">Back to Menu</button>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-      
-      <div id="menu" class="menu">
-        <button id="newGame" class="btn">New Game</button>
-        <button id="buy" class="btn ghost">Buy Snakes</button>
-        <button id="deposit" class="btn ghost">Deposit</button>
-        <button id="leaderboardBtn" class="btn ghost">Leaderboard</button>
-        <button id="help" class="btn ghost">Help</button>
-      </div>
-      
-      <div id="gameHolder" style="display: none;">
-        <canvas id="canvas" width="420" height="420"></canvas>
-      </div>
-    </div>
-    
-    <div class="card right" id="screens">
-      <div id="screenMenu" class="screen active">
-        <h3>Main Menu</h3>
-        <div class="small">Choose an action to continue.</div>
-      </div>
-      
-      <div id="screenBuy" class="screen">
-        <h3>Buy Snakes</h3>
-        <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;">
-          <button id="mintClassicBtn" class="btn">Mint Classic (0.01 MON)</button>
-          <button id="mintFastBtn" class="btn">Mint Fast (1 MON)</button>
-          <button id="mintHeartyBtn" class="btn">Mint Hearty (1 MON)</button>
-          <button id="mintLongBtn" class="btn">Mint Long (1 MON)</button>
+
+        <div class="card right screens" id="screens">
+            <div id="screenMenu" class="screen active">
+                <h3>Main Menu</h3>
+                <div class="muted">Choose an action to continue.</div>
+            </div>
+
+            <div id="screenBuy" class="screen">
+                <h3>Buy Snakes</h3>
+                <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+                    <button class="btn" id="mintClassicBtn">Mint Classic — 0.01 MON</button>
+                    <button class="btn" id="mintFastBtn">Mint Fast — 1 MON</button>
+                    <button class="btn" id="mintHeartyBtn">Mint Hearty — 1 MON</button>
+                    <button class="btn" id="mintLongBtn">Mint Long — 1 MON</button>
+                </div>
+                <div style="margin-top:12px">
+                    <div class="small">Select which of your minted snakes to use:</div>
+                    <select id="selectOwnedSnakes" style="margin-top:8px; width:100%; padding:8px; border-radius:8px; background:transparent; color:#fff;"></select>
+                    <div style="margin-top:10px">
+                        <button class="btn ghost" id="buyBack">Back</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="screenDeposit" class="screen">
+                <h3>Deposit to Game</h3>
+                <div style="display:flex; gap:8px; margin-top:10px;">
+                    <input id="depositAmount" placeholder="0.05" style="padding:8px; border-radius:8px; background:transparent; color:#fff; border:1px solid rgba(255,255,255,0.03)" />
+                    <button class="btn" id="depositBtn">Deposit</button>
+                </div>
+                <div style="margin-top:12px">
+                    <button class="btn ghost" id="depositBack">Back</button>
+                </div>
+            </div>
+
+            <div id="screenHelp" class="screen">
+                <h3>Help</h3>
+                <div class="muted" style="margin-top:10px">
+                    Use arrow keys or tap screen zones on mobile. Eat the white dot to score.
+                </div>
+                <div style="margin-top:12px">
+                    <button class="btn ghost" id="helpBack">Back</button>
+                </div>
+            </div>
+
+            <div id="screenLeaderboard" class="screen">
+                <h3>Leaderboard</h3>
+                <table id="leaderboardTable">
+                    <thead><tr><th>Rank</th><th>Wallet</th><th>Score</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+                <button class="btn ghost" style="margin-top:12px" id="leaderboardBack">Back</button>
+            </div>
         </div>
-        <div style="margin-top: 12px;">
-          <button id="buyBack" class="btn ghost">Back</button>
-        </div>
-      </div>
     </div>
-  </div>
-  
-  <div class="modal-backdrop" id="modal">
-    <div class="modal">
-      <h3 id="modalTitle">Game Over</h3>
-      <div id="modalBody" class="small">Score: <strong id="finalScore">0</strong></div>
-      <div style="margin-top: 16px; display: flex; gap: 8px; justify-content: flex-end;">
-        <button id="action1" class="btn">New Game</button>
-        <button id="action2" class="btn ghost">Back to Menu</button>
-      </div>
-    </div>
-  </div>
 
-  <script src="https://unpkg.com/supabase@2.45.4/dist/umd/supabase.js"></script>
-  <script type="module">
-    // FIXED WALLET CONNECT - Working version
-    import { createWeb3Modal, defaultWagmiConfig } from 'https://esm.sh/web3modal@2.4.0?bundle';
-    import { WalletConnectConnector } from 'https://esm.sh/@web3modal/ethereum@2.2.0?bundle';
-    import { createConfig, http } from 'https://esm.sh/wagmi@2.12.16?bundle';
-    import { createPublicClient, createWalletClient, custom, getContract, parseEther } from 'https://esm.sh/viem@2.21.1?bundle';
+    <div id="toastContainer"></div>
 
-    const monadTestnet = {
-      id: 10143,
-      name: 'Monad Testnet',
-      nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 },
-      rpcUrls: { default: { http: ['https://testnet-rpc.monad.xyz'] } },
-      blockExplorers: { default: { url: 'https://testnet.monadexplorer.com' } },
-      testnet: true
-    };
+    <script type="module" src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 
-    const projectId = 'd0a0230a461b71859ecd0ffe6433a89d';
-    
-    const config = createConfig({
-      chains: [monadTestnet],
-      transports: { [monadTestnet.id]: http() },
-      connectors: [
-        new WalletConnectConnector({ projectId, showQrModal: true })
-      ]
-    });
+    <script type="module">
+        // Imports with esm.sh to fix CORS on HTTPS
+        import { createWeb3Modal } from 'https://esm.sh/@web3modal/wagmi@5.1.12?bundle';
+        import { walletConnect, metaMask, coinbaseWallet } from 'https://esm.sh/@wagmi/connectors@5.1.12?bundle';
+        import { createConfig, http } from 'https://esm.sh/wagmi@2.12.16?bundle';
+        import { createPublicClient, createWalletClient, custom, getContract, parseEther } from 'https://esm.sh/viem@2.21.1?bundle';
 
-    const modal = createWeb3Modal({ wagmiConfig: config, projectId, themeMode: 'dark' });
+        const monadTestnet = {
+            id: 10143,
+            name: 'Monad Testnet',
+            nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 },
+            rpcUrls: { default: { http: ['https://testnet-rpc.monad.xyz'] } },
+            blockExplorers: { default: { url: 'https://testnet.monadexplorer.com' } },
+            testnet: true,
+        };
 
-    let publicClient, walletClient, contract, userAddress = null;
-    const CONTRACT_ADDRESS = '0x238efb5E1DB138E92ae39aAE9f9B6FdcfFd76437';
-    // Add your CONTRACT_ABI here from original file
-    const FOOD_FEE = 0.004;
-    const CONTRACT_ABI = [
-            {
+        const projectId = 'd0a0230a461b71859ecd0ffe6433a89d';
+
+        const config = createConfig({
+            chains: [monadTestnet],
+            transports: { [monadTestnet.id]: http() },
+            connectors: [
+                walletConnect({ projectId, showQrModal: true }),
+                metaMask(),
+                coinbaseWallet({ appName: 'Snake Monxia' }),
+            ],
+        });
+
+        const modal = createWeb3Modal({
+            wagmiConfig: config,
+            projectId,
+            themeMode: 'dark',
+            themeVariables: { '--w3m-accent': '#9b59ff' },
+            defaultChain: monadTestnet,
+        });
+
+        const CONTRACT_ADDRESS = "0x238efb5E1DB138E92ae39aAE9f9B6FdcfFd76437";
+        const FOOD_FEE = 4e14n;
+
+        const CONTRACT_ABI = [{
                 "inputs": [
                     {
                         "internalType": "address",
@@ -1312,52 +1406,507 @@
             }
         ];
 
-      
-    const supabase = supabase.createClient('https://wusexxzubjfrxifelgob.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...');
+        let publicClient, walletClient, contract, userAddress;
 
-    // Wallet connection handlers
-    document.getElementById('connectBtn').addEventListener('click', async () => {
-      try {
-        const provider = await modal.open();
-        if (provider) {
-          const accounts = await provider.request({ method: 'eth_accounts' });
-          userAddress = accounts[0];
-          updateWalletUI();
+        const SUPABASE_URL = "https://wusexxzubjfrxifelgob.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1c2V4eHp1YmpmcnhpZmVsZ29iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MDQzNTQsImV4cCI6MjA3NTQ4MDM1NH0.S_LICfku-L_Y6GPOZGMT4X_swMZjJD-ZMumeq3HUR74";
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const processing = document.getElementById("processing");
+        function startProcessing() { processing.style.display = "block"; }
+        function stopProcessing() { processing.style.display = "none"; }
+
+        function showToast(message, type = "info", duration = 3000) {
+            let container = document.getElementById("toastContainer");
+            const toast = document.createElement("div");
+            toast.innerText = message;
+            toast.style.padding = "12px 20px";
+            toast.style.borderRadius = "10px";
+            toast.style.fontSize = "14px";
+            toast.style.color = "#fff";
+            toast.style.boxShadow = "0 4px 12px rgba(0,0,0,0.25)";
+            toast.style.opacity = "0";
+            toast.style.transform = "translateY(20px)";
+            toast.style.transition = "all 0.4s ease";
+
+            switch (type) {
+                case "success": toast.style.background = "linear-gradient(90deg,#6d28d9,#9333ea)"; break;
+                case "error": toast.style.background = "linear-gradient(90deg,#ef4444,#dc2626)"; break;
+                case "warning": toast.style.background = "linear-gradient(90deg,#f59e0b,#d97706)"; break;
+                default: toast.style.background = "linear-gradient(90deg,#6366f1,#8b5cf6)";
+            }
+
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.style.opacity = "1";
+                toast.style.transform = "translateY(0)";
+            });
+
+            setTimeout(() => {
+                toast.style.opacity = "0";
+                toast.style.transform = "translateY(20px)";
+                setTimeout(() => toast.remove(), 400);
+            }, duration);
         }
-      } catch (e) {
-        console.error('Connection failed:', e);
-      }
-    });
 
-    document.getElementById('disconnectBtn').addEventListener('click', () => {
-      modal.closeModal();
-      userAddress = null;
-      updateWalletUI();
-    });
+        modal.subscribeProvider(async (provider) => {
+            if (!provider) {
+                userAddress = null;
+                document.getElementById("addr").innerText = 'Not connected';
+                document.getElementById("network").innerText = '—';
+                document.getElementById("connectBtn").style.display = 'inline-block';
+                document.getElementById("disconnectBtn").style.display = 'none';
+                contract = null;
+                showToast('Wallet disconnected', 'warning');
+                return;
+            }
 
-    function updateWalletUI() {
-      const addrEl = document.getElementById('addr');
-      const connectBtn = document.getElementById('connectBtn');
-      const disconnectBtn = document.getElementById('disconnectBtn');
-      
-      if (userAddress) {
-        addrEl.textContent = `${userAddress.slice(0,6)}...${userAddress.slice(-4)}`;
-        connectBtn.style.display = 'none';
-        disconnectBtn.style.display = 'inline-block';
-      } else {
-        addrEl.textContent = 'Not connected';
-        connectBtn.style.display = 'inline-block';
-        disconnectBtn.style.display = 'none';
-      }
-    }
+            startProcessing();
+            try {
+                const accounts = await provider.request({ method: 'eth_accounts' });
+                userAddress = accounts[0];
+                document.getElementById("addr").innerText = `${userAddress.slice(0, 6)}...${userAddress.slice(-4)}`;
+                document.getElementById("connectBtn").style.display = 'none';
+                document.getElementById("disconnectBtn").style.display = 'inline-block';
+                document.getElementById("network").innerText = 'Monad Testnet';
+                showToast('Wallet connected!', 'success');
 
-    // Basic game setup (add your full game logic here)
-    document.getElementById('newGame').addEventListener('click', () => {
-      document.getElementById('menu').style.display = 'none';
-      document.getElementById('gameHolder').style.display = 'block';
-      // Add game initialization
-    });
+                publicClient = createPublicClient({
+                    chain: monadTestnet,
+                    transport: custom(provider),
+                });
 
-  </script>
+                walletClient = createWalletClient({
+                    chain: monadTestnet,
+                    transport: custom(provider),
+                    account: userAddress,
+                });
+
+                contract = getContract({
+                    address: CONTRACT_ADDRESS,
+                    abi: CONTRACT_ABI,
+                    client: { public: publicClient, wallet: walletClient },
+                });
+
+                const chainId = await provider.request({ method: 'eth_chainId' });
+                if (parseInt(chainId, 16) !== monadTestnet.id) {
+                    try {
+                        await provider.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: `0x${monadTestnet.id.toString(16)}` }],
+                        });
+                    } catch (switchError) {
+                        if (switchError.code === 4902) {
+                            await provider.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [{
+                                    chainId: `0x${monadTestnet.id.toString(16)}`,
+                                    chainName: monadTestnet.name,
+                                    nativeCurrency: monadTestnet.nativeCurrency,
+                                    rpcUrls: monadTestnet.rpcUrls.default.http,
+                                    blockExplorerUrls: [monadTestnet.blockExplorers.default.url],
+                                }],
+                            });
+                        } else {
+                            throw switchError;
+                        }
+                    }
+                }
+
+                await refreshOwnedSnakes();
+            } catch (err) {
+                showToast('Connection failed: ' + (err.message || 'Unknown error'), 'error');
+            } finally {
+                stopProcessing();
+            }
+        });
+
+        document.getElementById("connectBtn").addEventListener("click", () => {
+            startProcessing();
+            modal.open();
+        });
+
+        document.getElementById("disconnectBtn").addEventListener("click", () => {
+            modal.disconnect();
+        });
+
+        async function safeTx(fn, successMsg = 'Transaction succeeded!') {
+            if (!contract || !userAddress) {
+                showToast('Connect wallet first', 'warning');
+                return;
+            }
+            startProcessing();
+            try {
+                const { hash } = await fn();
+                await publicClient.waitForTransactionReceipt({ hash });
+                showToast(successMsg, 'success');
+                await refreshOwnedSnakes();
+            } catch (err) {
+                showToast('Transaction failed: ' + (err.shortMessage || err.message), 'error');
+            } finally {
+                stopProcessing();
+            }
+        }
+
+        document.getElementById("mintClassicBtn").addEventListener("click", async () => {
+            await safeTx(() => contract.write.mintClassic([userAddress], { value: parseEther("0.01") }), 'Classic minted!');
+        });
+
+        document.getElementById("mintFastBtn").addEventListener("click", async () => {
+            await safeTx(() => contract.write.mintFastSnake([userAddress], { value: parseEther("1.0") }), 'Fast minted!');
+        });
+
+        document.getElementById("mintHeartyBtn").addEventListener("click", async () => {
+            await safeTx(() => contract.write.mintHeartySnake([userAddress], { value: parseEther("1.0") }), 'Hearty minted!');
+        });
+
+        document.getElementById("mintLongBtn").addEventListener("click", async () => {
+            await safeTx(() => contract.write.mintLongSnake([userAddress], { value: parseEther("1.0") }), 'Long minted!');
+        });
+
+        document.getElementById("depositBtn").addEventListener("click", async () => {
+            const amount = document.getElementById("depositAmount").value || "0.05";
+            await safeTx(() => contract.write.depositToGame([], { value: parseEther(amount) }), `Deposited ${amount} MON!`;
+        });
+
+        async function refreshOwnedSnakes() {
+            const sel = document.getElementById("selectOwnedSnakes");
+            sel.innerHTML = '<option value="">Loading...</option>';
+            if (!contract || !userAddress) {
+                sel.innerHTML = '<option value="">Connect wallet</option>';
+                return;
+            }
+            startProcessing();
+            try {
+                const bal = Number(await contract.read.balanceOf([userAddress]));
+                sel.innerHTML = '';
+                if (bal === 0) {
+                    sel.innerHTML = '<option value="">No snakes owned</option>';
+                    return;
+                }
+                let found = 0;
+                for (let t = 0; t < 500 && found < bal; t++) {
+                    try {
+                        const owner = await contract.read.ownerOf([BigInt(t)]);
+                        if (owner.toLowerCase() === userAddress.toLowerCase()) {
+                            const opt = document.createElement('option');
+                            opt.value = t.toString();
+                            opt.innerText = `#${t}`;
+                            sel.appendChild(opt);
+                            found++;
+                        }
+                    } catch {}
+                }
+                if (found === 0) sel.innerHTML = '<option value="">No tokens found</option>';
+            } finally {
+                stopProcessing();
+            }
+        }
+
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        document.getElementById("buy").addEventListener("click", () => showScreen('screenBuy'));
+        document.getElementById("deposit").addEventListener("click", () => showScreen('screenDeposit'));
+        document.getElementById("help").addEventListener("click", () => showScreen('screenHelp'));
+        document.getElementById("buyBack").addEventListener("click", () => showScreen('screenMenu'));
+        document.getElementById("depositBack").addEventListener("click", () => showScreen('screenMenu'));
+        document.getElementById("helpBack").addEventListener("click", () => showScreen('screenMenu'));
+
+        document.getElementById("leaderboardBtn").addEventListener("click", async () => {
+            showScreen('screenLeaderboard');
+            const tbody = document.querySelector('#leaderboardTable tbody');
+            tbody.innerHTML = '<tr><td colspan="3">Loading...</td></tr>';
+            try {
+                const { data } = await supabase.from('leaderboard').select('wallet, score').order('score', { ascending: false }).limit(10);
+                tbody.innerHTML = '';
+                data.forEach((row, i) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${i + 1}</td><td>${row.wallet.slice(0,6)}...${row.wallet.slice(-4)}</td><td>${row.score}</td>`;
+                    tbody.appendChild(tr);
+                });
+            } catch {
+                tbody.innerHTML = '<tr><td colspan="3">Error loading leaderboard</td></tr>';
+            }
+            document.getElementById("leaderboardBack").addEventListener("click", () => showScreen('screenMenu'));
+        });
+
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        const GRID = 20;
+        let gridSize = canvas.width / GRID;
+        let gameState = {
+            snake: [{ x: 10, y: 10 }],
+            dir: { x: 1, y: 0 },
+            food: { x: 15, y: 15 },
+            score: 0,
+            hearts: 1,
+            type: 'classic',
+            speed: 150,
+            running: false,
+            prepaidMode: true,
+            tickTimer: null
+        };
+
+        function resizeCanvas() {
+            const holder = document.getElementById('gameHolder');
+            const availableHeight = window.innerHeight - holder.getBoundingClientRect().top - 20;
+            canvas.width = canvas.height = Math.min(window.innerWidth - 32, availableHeight);
+            gridSize = canvas.width / GRID;
+            if (gameState.running) draw();
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        function openGame() {
+            document.getElementById("menu").style.display = "none";
+            document.getElementById("gameHolder").style.display = "block";
+            document.getElementById("hud").style.display = "flex";
+            hideModal();
+            resizeCanvas();
+            resetAndStartGame();
+            if (/Mobi|Android/i.test(navigator.userAgent)) {
+                document.getElementById("touch").style.display = "grid";
+            }
+        }
+
+        function resetAndStartGame() {
+            gameState.snake = [{ x: 10, y: 10 }];
+            gameState.dir = { x: 1, y: 0 };
+            gameState.food = randomCell();
+            gameState.score = 0;
+            gameState.hearts = 1;
+            gameState.type = 'classic';
+            gameState.speed = 150;
+            gameState.running = true;
+            updateHUD();
+            draw();
+            scheduleTick();
+        }
+
+        function randomCell() { return { x: Math.floor(Math.random() * GRID), y: Math.floor(Math.random() * GRID) }; }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#07020b";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = "#ffffff";
+            ctx.beginPath();
+            ctx.arc((gameState.food.x + 0.5) * gridSize, (gameState.food.y + 0.5) * gridSize, gridSize / 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            for (let i = 0; i < gameState.snake.length; i++) {
+                const s = gameState.snake[i];
+                const cx = (s.x + 0.5) * gridSize, cy = (s.y + 0.5) * gridSize;
+                if (i === 0) {
+                    ctx.fillStyle = (gameState.type === 'classic') ? '#b388ff' : '#00ffaa';
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, gridSize / 2.1, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = "#000";
+                    ctx.beginPath();
+                    ctx.arc(cx - gridSize / 5, cy - gridSize / 6, gridSize / 10, 0, Math.PI * 2);
+                    ctx.arc(cx + gridSize / 5, cy - gridSize / 6, gridSize / 10, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    const t = i / gameState.snake.length;
+                    const opacity = 0.6 * (1 - t) + 0.2;
+                    const radius = (gridSize / 2.5) * (1 - t * 0.6);
+                    ctx.fillStyle = `rgba(179,136,255,${opacity})`;
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+
+        function scheduleTick() {
+            clearTimeout(gameState.tickTimer);
+            gameState.tickTimer = setTimeout(tick, gameState.speed);
+        }
+
+        async function tick() {
+            if (!gameState.running) return;
+            let head = { x: gameState.snake[0].x + gameState.dir.x, y: gameState.snake[0].y + gameState.dir.y };
+            head.x = (head.x + GRID) % GRID;
+            head.y = (head.y + GRID) % GRID;
+
+            for (let i = 1; i < gameState.snake.length; i++) {
+                if (head.x === gameState.snake[i].x && head.y === gameState.snake[i].y) {
+                    if (gameState.hearts > 1) {
+                        gameState.hearts -= 1;
+                        gameState.snake = gameState.snake.slice(0, Math.max(1, Math.floor(gameState.snake.length / 2)));
+                        updateHUD(); draw(); return scheduleTick();
+                    } else {
+                        return onGameOver();
+                    }
+                }
+            }
+
+            gameState.snake.unshift(head);
+
+            if (head.x === gameState.food.x && head.y === gameState.food.y) {
+                gameState.score += 10;
+                if (gameState.type === 'hearty') {
+                    gameState.snake.push({ ...gameState.snake[gameState.snake.length - 1] });
+                    gameState.snake.push({ ...gameState.snake[gameState.snake.length - 1] });
+                    gameState.hearts = Math.max(1, gameState.hearts);
+                }
+                if (gameState.type === 'long') {
+                    while (gameState.snake.length < 6) gameState.snake.push({ ...gameState.snake[gameState.snake.length - 1] });
+                }
+                if (gameState.type === 'fast') {
+                    gameState.speed = Math.max(60, gameState.speed - 8);
+                }
+                gameState.food = randomCell();
+                updateHUD();
+
+                if (contract) {
+                    if (gameState.prepaidMode) {
+                        // Check balance before consume
+                        const bal = await contract.read.gameBalances([userAddress]);
+                        if (bal >= FOOD_FEE) {
+                            safeTx(() => contract.write.consumeFromBalance([FOOD_FEE]), '');
+                        } else {
+                            showToast('Insufficient game balance for food', 'warning');
+                        }
+                    } else {
+                        safeTx(() => contract.write.payForFood([], { value: FOOD_FEE }), '');
+                    }
+                }
+            } else {
+                gameState.snake.pop();
+            }
+
+            updateHUD();
+            draw();
+            scheduleTick();
+        }
+
+        function updateHUD() {
+            document.getElementById("score").innerText = gameState.score;
+            document.getElementById("lives").innerText = "💜".repeat(gameState.hearts);
+            document.getElementById("type").innerText = gameState.type;
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (!gameState.running) return;
+            if (e.key === 'ArrowUp' && gameState.dir.y !== 1) gameState.dir = { x: 0, y: -1 };
+            if (e.key === 'ArrowDown' && gameState.dir.y !== -1) gameState.dir = { x: 0, y: 1 };
+            if (e.key === 'ArrowLeft' && gameState.dir.x !== 1) gameState.dir = { x: -1, y: 0 };
+            if (e.key === 'ArrowRight' && gameState.dir.x !== -1) gameState.dir = { x: 1, y: 0 };
+        });
+
+        document.getElementById("touchLeft").addEventListener("touchstart", (e) => { e.preventDefault(); if (gameState.dir.x !== 1) gameState.dir = { x: -1, y: 0 }; });
+        document.getElementById("touchRight").addEventListener("touchstart", (e) => { e.preventDefault(); if (gameState.dir.x !== -1) gameState.dir = { x: 1, y: 0 }; });
+        document.getElementById("touchUp").addEventListener("touchstart", (e) => { e.preventDefault(); if (gameState.dir.y !== 1) gameState.dir = { x: 0, y: -1 }; });
+        document.getElementById("touchDown").addEventListener("touchstart", (e) => { e.preventDefault(); if (gameState.dir.y !== -1) gameState.dir = { x: 0, y: 1 }; });
+
+        document.getElementById("pause").addEventListener("click", () => {
+            gameState.running = !gameState.running;
+            document.getElementById("pause").innerText = gameState.running ? 'Pause' : 'Resume';
+            if (!gameState.running) {
+                showModal("Paused", "Paused — you can resume or go back to menu", "Resume", "Back to Menu", () => {
+                    hideModal();
+                    gameState.running = true;
+                    document.getElementById("pause").innerText = 'Pause';
+                    scheduleTick();
+                }, () => {
+                    hideModal();
+                    gameState.running = false;
+                    document.getElementById("gameHolder").style.display = "none";
+                    document.getElementById("hud").style.display = "none";
+                    document.getElementById("menu").style.display = "flex";
+                    showScreen('screenMenu');
+                });
+            }
+        });
+
+        function showModal(title, bodyHtml, action1Text, action2Text, action1, action2) {
+            document.getElementById("modalTitle").innerText = title;
+            document.getElementById("modalBody").innerHTML = bodyHtml;
+            document.getElementById("action1").innerText = action1Text;
+            document.getElementById("action2").innerText = action2Text;
+            document.getElementById("action1").onclick = action1;
+            document.getElementById("action2").onclick = action2;
+            document.getElementById("modal").style.display = "flex";
+        }
+
+        function hideModal() { document.getElementById("modal").style.display = "none"; }
+
+        async function onGameOver() {
+            if (!gameState.running) return;
+
+            gameState.running = false;
+            clearTimeout(gameState.tickTimer);
+            document.getElementById("pause").innerText = 'Pause';
+
+            showToast(`Game Over! Final Score: ${gameState.score}`, "error", 4000);
+
+            if (userAddress) {
+                try {
+                    await fetch(`${SUPABASE_URL}/functions/v1/submit-score`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${SUPABASE_ANON_KEY}` },
+                        body: JSON.stringify({ wallet: userAddress, score: gameState.score })
+                    });
+                } catch {}
+            }
+
+            if (contract) await safeTx(() => contract.write.submitScore([0, BigInt(gameState.score)]));
+
+            document.getElementById("finalScore").innerText = gameState.score;
+            showModal(
+                "Game Over!",
+                `Final Score: <strong>${gameState.score}</strong>. Tap Play Again to start a new game.`,
+                "Play Again",
+                "Back to Menu",
+                () => {
+                    hideModal();
+                    resetAndStartGame();
+                },
+                () => {
+                    hideModal();
+                    document.getElementById("gameHolder").style.display = "none";
+                    document.getElementById("hud").style.display = "none";
+                    document.getElementById("menu").style.display = "flex";
+                    showScreen('screenMenu');
+                }
+            );
+        }
+
+        document.getElementById("newGame").addEventListener("click", async () => {
+            if (!contract || !userAddress) { showToast("Connect wallet first", 'warning'); return; }
+            startProcessing();
+            try {
+                const bal = await contract.read.balanceOf([userAddress]);
+                if (bal === 0n) {
+                    showToast("You must mint a Classic snake first.", 'warning');
+                    showScreen('screenBuy');
+                    return;
+                }
+                openGame();
+            } catch (e) {
+                showToast("Ownership check failed: " + e.shortMessage, 'error');
+            } finally {
+                stopProcessing();
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const provider = modal.getWalletProvider();
+            if (provider) {
+                provider.request({ method: 'eth_accounts' }).then(accounts => {
+                    if (accounts.length > 0) {
+                        modal.subscribeProvider(provider);
+                    }
+                });
+            }
+        });
+    </script>
 </body>
+
 </html>
