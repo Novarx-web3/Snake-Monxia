@@ -1904,6 +1904,10 @@
         });
 
         document.addEventListener("DOMContentLoaded", () => {
+            if (window.ethereum && window.ethereum.isMetaMask && window.okxwallet) {
+                showToast('Multiple wallet extensions detected (e.g., MetaMask and OKX). Please select your preferred wallet in the connection modal.', 'warning', 5000);
+            }
+
             const provider = modal.getWalletProvider();
             if (provider) {
                 provider.request({ method: 'eth_accounts' }).then(accounts => {
