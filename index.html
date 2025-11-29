@@ -210,11 +210,11 @@
     <script type="module" src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 
     <script type="module">
-        // Imports with esm.sh to fix CORS on HTTPS
-        import { createWeb3Modal } from 'https://esm.sh/@web3modal/wagmi@5.1.12?bundle';
-        import { walletConnect, metaMask, coinbaseWallet, injected } from 'https://esm.sh/@wagmi/connectors@5.1.12?bundle';
-        import { createConfig, http } from 'https://esm.sh/wagmi@2.12.16?bundle';
+        // Imports for WalletConnect v2
+        import SignClient from 'https://esm.sh/@walletconnect/sign-client@2';
+        import { WalletConnectModal } from 'https://esm.sh/@walletconnect/modal@2';
         import { createPublicClient, createWalletClient, custom, getContract, parseEther } from 'https://esm.sh/viem@2.21.1?bundle';
+        import { http } from 'https://esm.sh/wagmi@2.12.16?bundle';
 
         const monadTestnet = {
             id: 10143,
@@ -227,30 +227,30 @@
 
         const projectId = 'd0a0230a461b71859ecd0ffe6433a89d';
 
-        const config = createConfig({
-            chains: [monadTestnet],
-            transports: { [monadTestnet.id]: http() },
-            connectors: [
-                walletConnect({ projectId, showQrModal: true }),
-                metaMask(),
-                coinbaseWallet({ appName: 'Snake Monxia' }),
-                injected({
-                    target: () => ({
-                        id: 'okxwallet',
-                        name: 'OKX Wallet',
-                        provider: window.okxwallet,
-                    })
-                }),
-            ],
-        });
+        let signClient;
+        let walletConnectModal;
+        let session;
+        let userAddress;
+        let publicClient, walletClient, contract;
 
-        const modal = createWeb3Modal({
-            wagmiConfig: config,
-            projectId,
-            themeMode: 'dark',
-            themeVariables: { '--w3m-accent': '#9b59ff' },
-            defaultChain: monadTestnet,
-        });
+        async function initWalletConnect() {
+            signClient = await SignClient.init({
+                projectId,
+                metadata: {
+                    name: 'Snake Monxia',
+                    description: 'Retro Snake game with Web3',
+                    url: window.location.origin,
+                    icons: ['https://snake-monxia.vercel.app/og.png'],
+                },
+            });
+
+            walletConnectModal = new WalletConnectModal({
+                projectId,
+                chains: [monadTestnet.id],
+            });
+        }
+
+        initWalletConnect().catch(console.error);
 
         const CONTRACT_ADDRESS = "0x238efb5E1DB138E92ae39aAE9f9B6FdcfFd76437";
         const FOOD_FEE = 4e14n;
@@ -1411,9 +1411,7 @@
                 "stateMutability": "view",
                 "type": "function"
             }
-        ];
-
-        let publicClient, walletClient, contract, userAddress;
+        ];// Add your ABI here
 
         const SUPABASE_URL = "https://wusexxzubjfrxifelgob.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind1c2V4eHp1YmpmcnhpZmVsZ29iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MDQzNTQsImV4cCI6MjA3NTQ4MDM1NH0.S_LICfku-L_Y6GPOZGMT4X_swMZjJD-ZMumeq3HUR74";
@@ -1457,43 +1455,58 @@
             }, duration);
         }
 
-        // Detect multiple wallets and show warning
-        if (window.ethereum && window.okxwallet) {
-            showToast('Multiple wallets detected. Please select your preferred wallet in the connection modal.', 'warning', 5000);
-        }
-
-        modal.subscribeProvider(async (provider) => {
-            if (!provider) {
-                userAddress = null;
-                document.getElementById("addr").innerText = 'Not connected';
-                document.getElementById("network").innerText = '—';
-                document.getElementById("connectBtn").style.display = 'inline-block';
-                document.getElementById("disconnectBtn").style.display = 'none';
-                contract = null;
-                showToast('Wallet disconnected', 'warning');
-                return;
-            }
-
+        async function connectWallet() {
             startProcessing();
             try {
-                const accounts = await provider.request({ method: 'eth_accounts' });
-                userAddress = accounts[0];
+                if (!signClient) throw new Error('WalletConnect not initialized');
+
+                const { uri, approval } = await signClient.connect({
+                    requiredNamespaces: {
+                        eip155: {
+                            methods: ['eth_sendTransaction', 'personal_sign', 'eth_signTypedData', 'eth_accounts', 'eth_chainId'],
+                            chains: [`eip155:${monadTestnet.id}`],
+                            events: ['chainChanged', 'accountsChanged'],
+                        },
+                    },
+                });
+
+                if (uri) {
+                    walletConnectModal.open({
+                        uri,
+                    });
+                }
+
+                session = await approval();
+                walletConnectModal.close();
+
+                const transport = http();  // Use for public client; for wallet, use custom with WalletConnect provider
+
+                publicClient = createPublicClient({
+                    chain: monadTestnet,
+                    transport,
+                });
+
+                // For wallet client, use custom transport with WalletConnect session
+                const wcProvider = {
+                    request: async (args) => await signClient.request({
+                        topic: session.topic,
+                        chainId: `eip155:${monadTestnet.id}`,
+                        request: args,
+                    }),
+                };
+
+                walletClient = createWalletClient({
+                    chain: monadTestnet,
+                    transport: custom(wcProvider),
+                });
+
+                const [address] = await walletClient.getAddresses();
+                userAddress = address;
+
                 document.getElementById("addr").innerText = `${userAddress.slice(0, 6)}...${userAddress.slice(-4)}`;
                 document.getElementById("connectBtn").style.display = 'none';
                 document.getElementById("disconnectBtn").style.display = 'inline-block';
                 document.getElementById("network").innerText = 'Monad Testnet';
-                showToast('Wallet connected!', 'success');
-
-                publicClient = createPublicClient({
-                    chain: monadTestnet,
-                    transport: custom(provider),
-                });
-
-                walletClient = createWalletClient({
-                    chain: monadTestnet,
-                    transport: custom(provider),
-                    account: userAddress,
-                });
 
                 contract = getContract({
                     address: CONTRACT_ADDRESS,
@@ -1501,47 +1514,54 @@
                     client: { public: publicClient, wallet: walletClient },
                 });
 
-                const chainId = await provider.request({ method: 'eth_chainId' });
+                // Switch/add chain if needed
+                const chainId = await wcProvider.request({ method: 'eth_chainId' });
                 if (parseInt(chainId, 16) !== monadTestnet.id) {
                     try {
-                        await provider.request({
+                        await wcProvider.request({
                             method: 'wallet_switchEthereumChain',
                             params: [{ chainId: `0x${monadTestnet.id.toString(16)}` }],
                         });
-                    } catch (switchError) {
-                        if (switchError.code === 4902) {
-                            await provider.request({
+                    } catch (error) {
+                        if (error.code === 4902) {
+                            await wcProvider.request({
                                 method: 'wallet_addEthereumChain',
-                                params: [{
-                                    chainId: `0x${monadTestnet.id.toString(16)}`,
-                                    chainName: monadTestnet.name,
-                                    nativeCurrency: monadTestnet.nativeCurrency,
-                                    rpcUrls: monadTestnet.rpcUrls.default.http,
-                                    blockExplorerUrls: [monadTestnet.blockExplorers.default.url],
-                                }],
+                                params: [monadTestnet],
                             });
                         } else {
-                            throw switchError;
+                            throw error;
                         }
                     }
                 }
 
+                showToast('Wallet connected!', 'success');
                 await refreshOwnedSnakes();
             } catch (err) {
                 showToast('Connection failed: ' + (err.message || 'Unknown error'), 'error');
             } finally {
                 stopProcessing();
             }
-        });
+        }
 
-        document.getElementById("connectBtn").addEventListener("click", () => {
-            startProcessing();
-            modal.open();
-        });
+        async function disconnectWallet() {
+            if (session) {
+                await signClient.disconnect({
+                    topic: session.topic,
+                    reason: { code: 6000, message: 'User disconnected' },
+                });
+                session = null;
+            }
+            userAddress = null;
+            document.getElementById("addr").innerText = 'Not connected';
+            document.getElementById("network").innerText = '—';
+            document.getElementById("connectBtn").style.display = 'inline-block';
+            document.getElementById("disconnectBtn").style.display = 'none';
+            contract = null;
+            showToast('Wallet disconnected', 'warning');
+        }
 
-        document.getElementById("disconnectBtn").addEventListener("click", () => {
-            modal.disconnect();
-        });
+        document.getElementById("connectBtn").addEventListener("click", connectWallet);
+        document.getElementById("disconnectBtn").addEventListener("click", disconnectWallet);
 
         async function safeTx(fn, successMsg = 'Transaction succeeded!') {
             if (!contract || !userAddress) {
@@ -1778,7 +1798,6 @@
 
                 if (contract) {
                     if (gameState.prepaidMode) {
-                        // Check balance before consume
                         const bal = await contract.read.gameBalances([userAddress]);
                         if (bal >= FOOD_FEE) {
                             safeTx(() => contract.write.consumeFromBalance([FOOD_FEE]), '');
@@ -1909,14 +1928,7 @@
         });
 
         document.addEventListener("DOMContentLoaded", () => {
-            const provider = modal.getWalletProvider();
-            if (provider) {
-                provider.request({ method: 'eth_accounts' }).then(accounts => {
-                    if (accounts.length > 0) {
-                        modal.subscribeProvider(provider);
-                    }
-                });
-            }
+            // No need for previous provider check, as we're using WalletConnect
         });
     </script>
 </body>
